@@ -1,0 +1,15 @@
+# Credentials and local configuration
+.env
+.env.*
+!.env.example
+
+# Runtime data and temporary files
+data/state.json
+data/*.tmp
+node_modules/
+coverage/
+dist/
+.DS_Store
+*.log
+__pycache__/
+*.pyc
