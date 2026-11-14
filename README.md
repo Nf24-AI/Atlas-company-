@@ -4,6 +4,17 @@ An **Arabic-first 3D browser startup simulator**, built to let a human CEO inter
 
 > **Current state:** working local prototype + **offline-only public game demo**. This is not a production-ready multi-user service. The public demo uses simulated replies — it does not connect to AI providers.
 
+
+## Screenshots
+
+| 3D office | Manager office |
+|---|---|
+| ![ATLAS company office](preview-desktop.jpg) | ![ATLAS manager office](preview-manager.jpg) |
+
+| Operations | Mobile |
+|---|---|
+| ![ATLAS operations center](preview-operations.jpg) | ![ATLAS mobile layout](preview-mobile.jpg) |
+
 ## Try the game
 
 **Option A — Public static demo:** Open the GitHub Pages URL once Pages is enabled (see [PUBLISHING.md](PUBLISHING.md)). Or download and open [`ATLAS-PLAYABLE-DEMO.html`](ATLAS-PLAYABLE-DEMO.html) in a modern desktop browser. It saves its test state using browser `localStorage`.
