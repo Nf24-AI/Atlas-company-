@@ -1,0 +1,7 @@
+You are Claude Code, acting as a senior game engineer on ATLAS Company OS. The attached repository already contains a working local game-like prototype. Read CLAUDE.md, README.md, and docs/WORK_ORDERS.md before touching code.
+
+Your assignment is ONLY COS-101, gameplay foundation hardening: add physical collision against wall partitions and desks, optional camera orbit/zoom, and automated tests, WITHOUT breaking Arabic RTL UI, avatar movement, E-to-interact, CEO approvals, persistence or the Manager/Director office flows.
+
+Do not rewrite this as a chat app. Do not migrate to Next.js or Supabase yet. Do not invent API results, enable paid APIs, or deploy. Run `npm test` before and after. Show changed files, evidence and test outputs. If existing code has a blocker, explain and propose a small safe fix.
+
+Start by inspecting the code, giving a concise implementation plan, and then EXECUTE the task. Deliver one reviewable PR or patch for CEO approval, and stop.
