@@ -16,7 +16,7 @@
     <header class="topbar frosted">
       <div class="brand"><div class="brand-symbol">A<span>·</span></div><div><b>ATLAS</b><small>COMPANY OS / EARLY ACCESS</small></div></div>
       <div class="top-links"><span class="live-dot"></span><span id="timeText">مقر الشركة الرئيسي</span><span class="separator">|</span><span>المبنى 01 / الطابق 01</span></div>
-      <button id="viewBtn" class="btn ghost small" type="button">↻ إعادة تمركز الكاميرا</button>
+      <div class="top-actions"><button id="orbitBtn" class="btn ghost small" type="button" aria-pressed="false" aria-label="كاميرا حرة" title="تدوير الكاميرا بالسحب وتقريبها بعجلة الفأرة (C)"><span id="orbitIcon">⟲</span> <span class="btn-label">كاميرا حرة</span></button><button id="viewBtn" class="btn ghost small" type="button" aria-label="إعادة تمركز الكاميرا" title="إعادة تمركز الكاميرا">↻ <span class="btn-label">إعادة تمركز الكاميرا</span></button></div>
     </header>
 
     <aside class="sidebar frosted">
@@ -61,6 +61,7 @@
     </div>
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
   </main>
+  <script type="module" src="/game-core.js"></script>
   <script src="/app.js" defer></script>
   <script src="/fallback.js" defer></script>
 </body>

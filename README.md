@@ -42,6 +42,8 @@ API usage may incur charges. No background development, GitHub code edits or dep
 
 - Move: `W`, `A`, `S`, `D` (or arrow keys).
 - Interact: `E` near a staff office, or use mini-map access.
+- Walls, partitions and furniture are solid; walk in through the open gaps in each office's front partition.
+- Camera: the default isometric follow camera needs no input. Press **كاميرا حرة** (or `C`) to orbit by dragging and zoom with the mouse wheel; press `C` again or **إعادة تمركز الكاميرا** to return to the default view.
 - Talk: browser microphone (where supported), with text fallback.
 - Visit **Operations Center** to inspect draft approvals and approved tasks.
 
@@ -51,7 +53,7 @@ API usage may incur charges. No background development, GitHub code edits or dep
 npm test
 ```
 
-Current automated coverage: basic page availability, Manager draft task, CEO approval and persistence, Director escalation, duplicate-approval rejection. Collision/camera automated coverage is **not implemented yet**: see `COS-101` in [`docs/WORK_ORDERS.md`](docs/WORK_ORDERS.md).
+Current automated coverage: basic page availability, Manager draft task, CEO approval and persistence, Director escalation, duplicate-approval rejection, plus movement, collision and camera maths in `public/game-core.js` (`tests/game-core.test.mjs`). See [`docs/cos-101/REPORT.md`](docs/cos-101/REPORT.md) for manual browser steps.
 
 ## For Claude Code
 

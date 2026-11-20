@@ -2,7 +2,7 @@
 
 ## Local QA checklist
 1. Run `node server.js` and open `http://127.0.0.1:3099`; health endpoint should return JSON.
-2. Move with WASD/arrow keys. Camera follows the avatar. Use minimap shortcuts and E key to enter Manager / Director / Operations.
+2. Move with WASD/arrow keys. Camera follows the avatar. Walls, partitions, desks, NPCs and plants block movement; the gaps in each office's front partition are walkable. Use minimap shortcuts and E key to enter Manager / Director / Operations. Optional camera: toggle with the camera button or `C`, drag to orbit, wheel to zoom, `C` again to reset (full steps in `docs/cos-101/REPORT.md`).
 3. Ask Manager `أبغى نطلق التطبيق في أسبوع بدون اختبار`. In DEMO, answer must be explicitly marked demo; do not mistake scripted response for AI reasoning.
 4. Review suggested task, approve it. Confirm Operations contains task and remains after refresh.
 5. Escalate to Director. Verify independent response and recorded event.
