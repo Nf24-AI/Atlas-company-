@@ -1,11 +1,13 @@
 // Canvas2D isometric fallback for devices where WebGL is blocked. Draws the SAME primitives
-// as the WebGL renderer (world-data.js), painter-sorted, so the two can never disagree.
+// as the WebGL renderer (world-data.js), painter-sorted, so the two can never disagree. COS-108: the same
+// bilingual signs (as text) and the same status-driven presence (presence.js) as the 3D renderer.
+import {presenceFor} from './presence.js';
 const shade = (hex, f) => {
   const v = parseInt(hex.slice(1), 16), c = [(v >> 16) & 255, (v >> 8) & 255, v & 255].map(n => Math.max(0, Math.min(255, Math.round(n * f))));
   return `rgb(${c[0]},${c[1]},${c[2]})`;
 };
 
-export function createCanvasRenderer(canvas, staticPrimitives) {
+export function createCanvasRenderer(canvas, staticPrimitives, {signs = []} = {}) {
   const ctx = canvas.getContext('2d');
   if (!ctx) return null;
   let ox = 0, oy = 0, scale = 1;
@@ -26,7 +28,7 @@ export function createCanvasRenderer(canvas, staticPrimitives) {
   const sorted = [...staticPrimitives].sort((a, b) => depth(a) - depth(b));
   return {
     kind: 'canvas2d',
-    render({dynamicPrimitives}) {
+    render({dynamicPrimitives = [], npcStates = {}}) {
       const rect = canvas.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
       const w = Math.max(1, Math.round(rect.width * dpr)), h = Math.max(1, Math.round(rect.height * dpr));
       if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
@@ -34,7 +36,16 @@ export function createCanvasRenderer(canvas, staticPrimitives) {
       scale = Math.min(1.12, Math.max(.47, Math.min(rect.width / 1450, rect.height / 850))); ox = rect.width * .51; oy = rect.height * .46;
       const all = dynamicPrimitives.length ? [...sorted, ...dynamicPrimitives].sort((a, b) => depth(a) - depth(b)) : sorted;
       for (const p of all) drawPrim(p);
-      return {project: (x, y, z) => pt(x, z, y), width: rect.width, height: rect.height};
+      ctx.textAlign = 'center';
+      for (const sg of signs) {
+        const [x, y] = pt(sg.x, sg.z, sg.y), fs = Math.max(9, 11 * scale);
+        ctx.font = '700 ' + fs + 'px system-ui, Tahoma, sans-serif'; const tw = ctx.measureText(sg.ar).width + 12;
+        ctx.fillStyle = '#183c45e6'; ctx.fillRect(x - tw / 2, y - fs, tw, fs * 1.5);
+        ctx.fillStyle = '#f5f1e9'; ctx.direction = 'rtl'; ctx.fillText((sg.arrow === 'right' ? '→ ' : '') + sg.ar + (sg.arrow === 'left' ? ' ←' : ''), x, y + fs * .2); ctx.direction = 'ltr';
+      }
+      const poses = {};
+      for (const [id, st] of Object.entries(npcStates)) if (!id.startsWith('__')) poses[id] = presenceFor(st?.status).pose;
+      return {project: (x, y, z) => pt(x, z, y), width: rect.width, height: rect.height, poses};
     },
   };
 }

@@ -1,8 +1,9 @@
 // Three.js renderer (ADR-001). Builds the office from world-data primitives, adds lighting,
-// soft shadows, sliding glass doors, live monitor screens and animated humanoid characters.
+// soft shadows, sliding glass doors, live monitor screens, bilingual signage and animated humanoid characters.
 // Animations and screens reflect REAL employee status from the API — nothing pretends to work.
 import * as THREE from '../../vendor/three.module.js';
 import {createHumanoid, animateHumanoid} from './humanoid.js';
+import {presenceFor} from './presence.js';
 
 import {STATUS_COLORS} from '../ui/status-colors.js';
 export {STATUS_COLORS};
@@ -107,6 +108,33 @@ export function createThreeRenderer(canvas, world, {quality = 'high'} = {}) {
     s.tex.needsUpdate = true;
   }
 
+  // ---- signage (COS-108-D): bilingual canvas textures, drawn once, double-sided and unmirrored
+  for (const sg of world.signs || []) {
+    const cv = document.createElement('canvas'); cv.width = 512; cv.height = Math.max(96, Math.round(512 * sg.h / sg.w));
+    const ctx = cv.getContext('2d'), w = cv.width, h = cv.height;
+    ctx.fillStyle = '#183c45'; ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = sg.accent; ctx.fillRect(0, h - 5, w, 5);
+    const pad = sg.arrow ? h * .9 : 0;
+    ctx.fillStyle = '#f5f1e9'; ctx.textAlign = 'center'; ctx.direction = 'rtl';
+    ctx.font = `700 ${Math.round(h * .42)}px "Segoe UI", Tahoma, "Noto Sans Arabic", system-ui, sans-serif`;
+    ctx.fillText(sg.ar, w / 2 + (sg.arrow === 'left' ? pad / 2 : sg.arrow === 'right' ? -pad / 2 : 0), h * .52, w - pad - 20);
+    ctx.direction = 'ltr'; ctx.fillStyle = '#9fd3cf'; ctx.font = `600 ${Math.round(h * .2)}px "Segoe UI", system-ui, sans-serif`;
+    ctx.fillText(sg.en.toUpperCase(), w / 2 + (sg.arrow === 'left' ? pad / 2 : sg.arrow === 'right' ? -pad / 2 : 0), h * .82, w - pad - 20);
+    if (sg.arrow) {
+      ctx.fillStyle = sg.accent; ctx.beginPath();
+      const cx = sg.arrow === 'left' ? pad * .55 : w - pad * .55, dir = sg.arrow === 'left' ? -1 : 1, s2 = h * .26;
+      ctx.moveTo(cx + dir * s2, h * .5); ctx.lineTo(cx - dir * s2 * .6, h * .5 - s2); ctx.lineTo(cx - dir * s2 * .6, h * .5 + s2); ctx.closePath(); ctx.fill();
+    }
+    const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
+    const mat = new THREE.MeshBasicMaterial({map: tex, toneMapped: false});
+    const front = new THREE.Mesh(new THREE.PlaneGeometry(sg.w, sg.h), mat);
+    front.position.set(sg.x, sg.y, sg.z); if (sg.facing < 0) front.rotation.y = Math.PI;
+    // the back face shows the same, unmirrored text for people walking the other way
+    const back = new THREE.Mesh(new THREE.PlaneGeometry(sg.w, sg.h), mat);
+    back.position.set(sg.x, sg.y, sg.z - sg.facing * .08); back.rotation.y = sg.facing < 0 ? 0 : Math.PI;
+    scene.add(front, back);
+  }
+
   // ---- characters
   const player = createHumanoid(THREE, {coat: '#1d5163', accent: '#253a44', skin: '#e1b48d', hair: '#2b2421'});
   scene.add(player.group);
@@ -117,8 +145,11 @@ export function createThreeRenderer(canvas, world, {quality = 'high'} = {}) {
     // status beacon above the head
     const beacon = new THREE.Mesh(new THREE.OctahedronGeometry(.16, 0), new THREE.MeshStandardMaterial({color: '#63d9a3', emissive: '#63d9a3', emissiveIntensity: .8}));
     beacon.position.set(0, 2.25, 0); h.group.add(beacon);
+    // floor ring in the status colour: readable from the high overview camera too
+    const halo = new THREE.Mesh(new THREE.RingGeometry(.48, .62, 32), new THREE.MeshBasicMaterial({color: '#63d9a3', transparent: true, opacity: .55, side: THREE.DoubleSide, depthWrite: false}));
+    halo.rotation.x = -Math.PI / 2; halo.position.y = .025; h.group.add(halo);
     scene.add(h.group);
-    npcs.set(n.id, {...n, h, beacon, yaw: n.facing});
+    npcs.set(n.id, {...n, h, beacon, halo, yaw: n.facing});
   }
 
   // ---- interaction ring
@@ -145,18 +176,25 @@ export function createThreeRenderer(canvas, world, {quality = 'high'} = {}) {
       player.group.rotation.y = player.yaw;
       animateHumanoid(player, {phase: p.walkPhase, moving: p.moving, time, pose: 'stand'});
 
-      // NPCs follow real status; they turn to face the CEO only when the CEO is right there.
+      // NPCs follow REAL status only (presence.js); they turn to face the CEO when the CEO is right there.
+      const poses = {};
       for (const [id, n] of npcs) {
-        const st = npcStates[id] || {status: 'offline'};
-        const color = STATUS_COLORS[st.status] || STATUS_COLORS.offline;
+        const pr = presenceFor(npcStates[id]?.status);
+        const color = STATUS_COLORS[pr.status] || STATUS_COLORS.unknown;
         n.beacon.material.color.set(color); n.beacon.material.emissive.set(color);
-        n.beacon.position.y = 2.25 + Math.sin(time * 2 + n.x) * .05; n.beacon.rotation.y = time * 1.5;
+        n.halo.material.color.set(color);
+        // blockers / approvals pulse to draw the CEO's eye; everything else is calm
+        const pulse = pr.attention ? .5 + .5 * Math.sin(time * 5) : 0;
+        n.beacon.scale.setScalar(1 + pulse * .45); n.beacon.material.emissiveIntensity = .8 + pulse;
+        n.halo.material.opacity = pr.status === 'unknown' ? .2 : .45 + pulse * .4;
+        const focus = nearby === id ? 1.18 : 1; n.halo.scale.set(focus, focus, focus);
+        n.beacon.position.y = 2.25 + (pr.status === 'unknown' ? 0 : Math.sin(time * 2 + n.x) * .05); n.beacon.rotation.y = pr.status === 'unknown' ? 0 : time * 1.5;
         const close = Math.hypot(p.x - n.x, p.z - n.z) < 3.4;
-        const want = close && st.status !== 'executing' ? Math.atan2(p.x - n.x, p.z - n.z) : n.facing;
+        const want = close && pr.pose !== 'typing' ? Math.atan2(p.x - n.x, p.z - n.z) : n.facing;
         n.yaw += Math.atan2(Math.sin(want - n.yaw), Math.cos(want - n.yaw)) * Math.min(1, dt * 4);
         n.h.group.rotation.y = n.yaw;
-        const pose = st.status === 'executing' ? 'typing' : st.status === 'reviewing' || st.status === 'planning' ? 'thinking' : st.status === 'in_meeting' ? 'talking' : st.status === 'blocked' ? 'blocked' : 'stand';
-        animateHumanoid(n.h, {phase: 0, moving: false, time: time + n.x, pose});
+        animateHumanoid(n.h, {phase: 0, moving: false, time: time + n.x, pose: pr.pose});
+        poses[id] = pr.pose;
       }
 
       // monitors
@@ -187,7 +225,7 @@ export function createThreeRenderer(canvas, world, {quality = 'high'} = {}) {
 
       renderer.render(scene, camera);
       return {
-        width, height,
+        width, height, poses,
         project: (x, y, z) => { v.set(x, y, z).project(camera); return [(v.x * .5 + .5) * width, (1 - (v.y * .5 + .5)) * height, v.z < 1]; },
       };
     },
