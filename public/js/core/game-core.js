@@ -74,20 +74,37 @@ export function inputVector(keys) {
 }
 
 // ---- Camera -------------------------------------------------------------------
-// Default framing reproduces the original follow offset (+11, 16, +17) from the player.
-const DEFAULT_OFFSET = {x: 11, y: 16, z: 17};
+// COS-108: two framings share ONE yaw, so screen-relative movement is identical in both.
+//  - follow   (default): close third-person view; the avatar is easy to find and read.
+//  - overview (optional): high bird's-eye view for orientation and map comprehension.
+// LEGACY_CAMERA is the pre-COS-108 default (follow offset +11, +16, +17), kept for measurements.
+const LEGACY_OFFSET = {x: 11, y: 16, z: 17};
+const BASE_YAW = Math.atan2(LEGACY_OFFSET.x, LEGACY_OFFSET.z);
+const deg = d => d * Math.PI / 180;
+export const LEGACY_CAMERA = Object.freeze({
+  yaw: BASE_YAW,
+  pitch: Math.atan2(LEGACY_OFFSET.y, Math.hypot(LEGACY_OFFSET.x, LEGACY_OFFSET.z)),
+  distance: Math.hypot(LEGACY_OFFSET.x, LEGACY_OFFSET.y, LEGACY_OFFSET.z),
+});
 export const CAMERA_LIMITS = Object.freeze({
   minPitch: 25 * Math.PI / 180, maxPitch: 65 * Math.PI / 180, // never top-down flips or ground-level views
-  minDistance: 12, maxDistance: 38,
+  minDistance: 7, maxDistance: 40,
   rotateSpeed: 0.005, // radians per dragged pixel — deliberately slow to avoid motion sickness
   zoomSpeed: 0.0015,  // fraction of distance per wheel delta unit
   maxWheelStep: 0.15, // cap per wheel event so trackpads can't lurch the view
 });
-export const DEFAULT_CAMERA = Object.freeze({
-  yaw: Math.atan2(DEFAULT_OFFSET.x, DEFAULT_OFFSET.z),
-  pitch: Math.atan2(DEFAULT_OFFSET.y, Math.hypot(DEFAULT_OFFSET.x, DEFAULT_OFFSET.z)),
-  distance: Math.hypot(DEFAULT_OFFSET.x, DEFAULT_OFFSET.y, DEFAULT_OFFSET.z),
+export const CAMERA_PRESETS = Object.freeze({
+  follow: Object.freeze({yaw: BASE_YAW, pitch: deg(33), distance: 12.5}),
+  overview: Object.freeze({yaw: BASE_YAW, pitch: deg(58), distance: 34}),
 });
+export const CAMERA_MODES = Object.freeze(Object.keys(CAMERA_PRESETS));
+export const DEFAULT_CAMERA_MODE = 'follow';
+export const DEFAULT_CAMERA = CAMERA_PRESETS[DEFAULT_CAMERA_MODE];
+
+/** Preset for a mode name; unknown names fall back to the default framing. */
+export function cameraPreset(mode) {
+  return CAMERA_PRESETS[mode] || DEFAULT_CAMERA;
+}
 
 /** Camera position relative to the player for an orbit state. */
 export function cameraOffset({yaw, pitch, distance}) {
@@ -123,7 +140,7 @@ export function angleDelta(a, b) {
  * At the default yaw this is the identity, so the classic controls are unchanged;
  * after orbiting, W still walks "up the screen".
  */
-export function worldDirection(input, yaw, baseYaw = DEFAULT_CAMERA.yaw) {
+export function worldDirection(input, yaw, baseYaw = BASE_YAW) {
   const a = yaw - baseYaw, c = Math.cos(a), s = Math.sin(a);
   return {x: input.x * c + input.z * s, z: -input.x * s + input.z * c};
 }
@@ -171,6 +188,6 @@ export function applyPinch(cam, ratio, limits = CAMERA_LIMITS) {
 }
 
 const AtlasCore = {PLAYER_RADIUS, WALK_SPEED, BOUNDS, OBSTACLES, collisions, isWalkable, moveWithCollisions, resolvePosition, inputVector,
-  CAMERA_LIMITS, DEFAULT_CAMERA, cameraOffset, clampCamera, applyDrag, applyZoom, applyPinch, damp, angleDelta, worldDirection,
+  CAMERA_LIMITS, DEFAULT_CAMERA, LEGACY_CAMERA, CAMERA_PRESETS, CAMERA_MODES, DEFAULT_CAMERA_MODE, cameraPreset, cameraOffset, clampCamera, applyDrag, applyZoom, applyPinch, damp, angleDelta, worldDirection,
   SIGHT_BLOCKERS, segmentHitsBox, hasLineOfSight, nearestInteractable};
 export default AtlasCore;

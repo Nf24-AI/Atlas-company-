@@ -47,6 +47,11 @@ export const ROOMS = Object.freeze([
 
 export const SPAWN = Object.freeze({x: 0, z: 14});
 
+/** Room containing (x, z), or null for corridors (entry/exit cues and the HUD location chip). */
+export function roomAt(x, z) {
+  return ROOMS.find(r => x >= r.x0 && x <= r.x1 && z >= r.z0 && z <= r.z1) || null;
+}
+
 /** NPC placements. `facing` is the yaw they look towards when idle. */
 export const NPCS = Object.freeze([
   {id: 'director', x: -17, z: -12.8, facing: 0, coat: '#6d5a49', accent: '#2c3a44', skin: '#c99a76'},
@@ -56,7 +61,7 @@ export const NPCS = Object.freeze([
 ]);
 
 export function buildWorld() {
-  const primitives = [], colliders = [], doors = [], screens = [];
+  const primitives = [], colliders = [], doors = [], screens = [], signs = [];
   const prim = p => primitives.push(p);
   const boxP = (x, y, z, w, h, d, color, mat) => prim({shape: 'box', x, y, z, w, h, d, color, ...(mat ? {mat} : {})});
   const cylP = (x, y, z, r, h, color, mat) => prim({shape: 'cyl', x, y, z, r, h, color, ...(mat ? {mat} : {})});
@@ -107,6 +112,22 @@ export function buildWorld() {
   };
   const rug = (x, z, w, d, color) => boxP(x, .006, z, w, .012, d, color, 'fabric');
   const zone = r => boxP((r.x0 + r.x1) / 2, -.005, (r.z0 + r.z1) / 2, r.x1 - r.x0, .01, r.z1 - r.z0, r.color);
+  /** Text sign (COS-108-D), Arabic first. `facing`: +1 faces +z viewers, -1 faces -z. Free-standing signs are two-sided. */
+  const sign = (id, x, y, z, w, h, ar, en, {facing = 1, arrow = null, accent = COLORS.gold, twoSided = false} = {}) =>
+    signs.push({id, x, y, z, w, h, ar, en, facing, arrow, accent, twoSided});
+  /** Free-standing wayfinding pylon: post + panel, solid footprint like any furniture. */
+  const pylon = (id, x, z, ar, en, opts = {}) => {
+    boxP(x, .85, z, .12, 1.7, .12, COLORS.wallTrim, 'metal'); boxP(x, .03, z, .5, .06, .5, COLORS.wallTrim, 'metal');
+    boxP(x, 1.78, z, (opts.w || 2) + .08, .66, .05, COLORS.wallTrim);
+    sign(id, x, 1.78, z + .035, opts.w || 2, .58, ar, en, {...opts, twoSided: true});
+    solid(id, x, z, .5, .5);
+  };
+  /** Small emissive desk/floor lamp: an ambient light cue without an extra real-time light. */
+  const lamp = (id, x, z, {floor = false, y = .8} = {}) => {
+    if (floor) { cylP(x, .75, z, .04, 1.5, COLORS.steel, 'metal'); cylP(x, .03, z, .22, .05, COLORS.steel, 'metal'); sphP(x, 1.55, z, .2, '#ffe6b8', 'emissive'); solid(id, x, z, .45, .45); }
+    else { cylP(x, y + .17, z, .02, .34, COLORS.steel, 'metal'); sphP(x, y + .36, z, .08, '#ffe6b8', 'emissive'); }
+  };
+  const mug = (x, y, z, color = '#e9ece6') => cylP(x, y + .06, z, .045, .12, color);
 
   // ---- floor slab, zones, outer walls
   boxP(0, -.16, 0, 46, .3, 34, COLORS.floor);
@@ -124,8 +145,11 @@ export function buildWorld() {
   wallRun('meet-west', 'z', -6, -16, -7); wallRun('meet-east', 'z', 6, -16, -7); wallRun('meet-south', 'x', -7, -6, 6, [[-1, 1]]);
   wallRun('pm-west', 'z', 12, -16, -7); wallRun('pm-south', 'x', -7, 12, 22, [[16.1, 17.9]]);
   wallRun('ceo-east', 'z', -12, 8, 16); wallRun('ceo-north', 'x', 8, -22, -12, [[-17.9, -16.1]]);
-  // room signs above the doors
-  for (const [x, z] of [[-17, -6.86], [0, -6.86], [17, -6.86], [-17, 7.86]]) boxP(x, 2.15, z, 2.2, .32, .06, COLORS.wallTrim);
+  // room signs above the doors (COS-108-D: legible bilingual text, Arabic first)
+  for (const [id, x, ar, en] of [['td', -17, 'المدير التقني', 'Technical Director'], ['meet', 0, 'غرفة الاجتماعات', 'Meeting Room'], ['pm', 17, 'مدير المشاريع', 'Project Manager']]) {
+    boxP(x, 2.2, -6.86, 2.5, .56, .06, COLORS.wallTrim); sign(`sign-${id}`, x, 2.2, -6.82, 2.4, .5, ar, en);
+  }
+  boxP(-17, 2.2, 7.86, 2.5, .56, .06, COLORS.wallTrim); sign('sign-ceo', -17, 2.2, 7.82, 2.4, .5, 'مكتب الرئيس التنفيذي', 'CEO Office', {facing: -1});
 
   // ---- Technical Director office
   desk('td-desk', -17, -11.6, {wood: '#8a6448', screenFacing: -1, screenOwner: 'director', chairSide: -1});
@@ -133,6 +157,11 @@ export function buildWorld() {
   for (let i = 0; i < 4; i++) boxP(-21.05, .45 + i * .42, -12, .06, .3, 3.2, ['#7d9aa1', '#d8b07a', '#9fb7a3', '#c3a07c'][i]);
   boxP(-17, 1.6, -15.95, 3, 1.4, .06, '#f4f4ef'); boxP(-17, 1.6, -15.9, 2.6, 1.1, .02, '#d8e6e3'); // whiteboard
   plant('td-plant', -13, -15, .9); rug(-17, -10.2, 3.2, 2, '#b6a38f');
+  // architecture sketch on the whiteboard + visitor chairs + reading lamp
+  for (const [dx, dy, c] of [[-.8, .25, '#77b8f0'], [0, .25, '#77dbcd'], [.8, .25, '#f6bc7a'], [-.4, -.2, '#b59cf5'], [.4, -.2, '#9be37c']]) boxP(-17 + dx, 1.6 + dy, -15.88, .5, .26, .015, c);
+  boxP(-17, 1.6, -15.875, 1.7, .025, .01, '#2c4b52'); boxP(-17, 1.6, -15.875, .025, .5, .01, '#2c4b52');
+  for (const x of [-18.4, -15.6]) { chair(x, -10.2, Math.PI); solid(`td-visitor-${x < -17 ? 'w' : 'e'}`, x, -10.2, .66, .6); }
+  lamp('td-lamp', -13.4, -8.4, {floor: true}); lamp('td-desk-lamp', -15.95, -11.75);
 
   // ---- Meeting room
   boxP(0, .74, -12, 5.2, .08, 2.2, '#efeae0', 'wood'); for (const dx of [-2.2, 2.2]) boxP(dx, .37, -12, .1, .72, 1.8, COLORS.steel, 'metal');
@@ -142,6 +171,7 @@ export function buildWorld() {
   boxP(0, 1.55, -15.9, 4.2, 1.5, .08, '#162a31', 'metal');
   screens.push({id: 'meet-screen', x: 0, y: 1.55, z: -15.84, w: 3.9, h: 1.3, facing: 1, owner: 'meeting'});
   plant('meet-plant-w', -5.2, -15.2, .8); plant('meet-plant-e', 5.2, -15.2, .8);
+  cylP(0, .8, -12, .26, .04, '#1b2b31', 'metal'); for (const dx of [-1.6, 0, 1.6]) for (const dz of [-.65, .65]) mug(dx, .78, -12 + dz, '#cfe9e1');
 
   // ---- Project Manager office
   desk('pm-desk', 17, -11.6, {screenFacing: -1, screenOwner: 'manager', chairSide: -1});
@@ -149,6 +179,8 @@ export function buildWorld() {
   boxP(17, 1.6, -15.95, 3.4, 1.4, .06, '#f4f4ef'); // kanban board
   for (let c = 0; c < 3; c++) for (let r = 0; r < 3; r++) boxP(15.8 + c * 1.2, 1.95 - r * .35, -15.9, .5, .22, .02, ['#f6d27a', '#9fd3cf', '#f0a8a0'][(c + r) % 3]);
   plant('pm-plant', 13, -15, .9); rug(17, -10.2, 3.2, 2, '#a7c3b5');
+  for (const x of [15.6, 18.4]) { chair(x, -10.2, Math.PI); solid(`pm-visitor-${x < 17 ? 'w' : 'e'}`, x, -10.2, .66, .6); }
+  lamp('pm-lamp', 13.4, -8.4, {floor: true}); lamp('pm-desk-lamp', 18.05, -11.75); mug(15.95, .8, -11.4);
 
   // ---- Developer workstations (open plan, low partitions)
   desk('dev-desk-1', -18, -1.5, {wood: '#b08a66', screenFacing: 1, screenOwner: 'developer', chairSide: 1});
@@ -156,12 +188,17 @@ export function buildWorld() {
   boxP(-15.75, .55, -2.4, 7.4, 1.1, .08, COLORS.partition); solid('dev-partition', -15.75, -2.4, 7.4, .12);
   boxP(-21.6, 1.1, 1, .08, 1.6, 3, '#f4f4ef'); // dev whiteboard on west wall
   plant('dev-plant', -21, 4.4, .9);
+  for (let i = 0; i < 6; i++) boxP(-21.55, 1.45 - Math.floor(i / 3) * .35, .2 + (i % 3) * .75, .015, .24, .3, ['#f6d27a', '#9fd3cf', '#f0a8a0'][i % 3]); // sprint notes
+  for (const x of [-18, -13.5]) { lamp(`dev-lamp-${x}`, x - 1.05, -1.65); mug(x + .85, .8, -1.25, '#2d7168'); }
+  pylon('sign-dev', -9.6, 5, 'المطورون', 'Developers', {w: 1.9});
 
   // ---- Operations center: video wall + round table
   boxP(0, 1.5, -3.6, 6.4, 2.4, .25, '#13262d', 'metal'); solid('ops-wall', 0, -3.6, 6.4, .3);
   screens.push({id: 'ops-screen', x: 0, y: 1.6, z: -3.46, w: 6, h: 2, facing: 1, owner: 'board'});
   cylP(0, .74, 1.4, 1.3, .08, '#e9e4d8', 'wood'); cylP(0, .37, 1.4, .18, .72, COLORS.steel, 'metal'); solid('ops-table', 0, 1.4, 2.4, 2.4);
-  for (const x of [-4.6, 4.6]) { boxP(x, .5, -1.5, 1.2, 1, .7, COLORS.woodDark, 'wood'); solid(`ops-console-${x < 0 ? 'w' : 'e'}`, x, -1.5, 1.2, .7); }
+  for (const x of [-4.6, 4.6]) { boxP(x, .5, -1.5, 1.2, 1, .7, COLORS.woodDark, 'wood'); boxP(x, 1.02, -1.5, 1, .02, .5, '#1d4a52', 'emissive'); solid(`ops-console-${x < 0 ? 'w' : 'e'}`, x, -1.5, 1.2, .7); }
+  boxP(0, 2.98, -3.6, 4.2, .56, .2, COLORS.wallTrim); sign('sign-ops', 0, 2.98, -3.48, 4, .5, 'مركز العمليات', 'Operations Center');
+  cylP(0, .004, 1.4, 2.1, .006, '#a7c2b2', 'fabric');
 
   // ---- QA lab
   desk('qa-desk-1', 16, -1.5, {wood: '#9f8fb5', screenFacing: 1, screenOwner: 'qa', chairSide: 1});
@@ -169,17 +206,25 @@ export function buildWorld() {
   for (let i = 0; i < 6; i++) boxP(20.33, .35 + i * .3, -1.5, .02, .08, 2, i % 2 ? '#63d9a3' : '#77dbcd', 'emissive');
   boxP(12.5, .5, -1.5, 1.4, 1, .8, '#d9d4e6', 'wood'); solid('qa-bench', 12.5, -1.5, 1.4, .8);
   plant('qa-plant', 21, 4.4, .9);
+  for (const [dx, c] of [[-.45, '#77dbcd'], [0, '#63d9a3'], [.45, '#f6d27a']]) { boxP(12.5 + dx, 1.03, -1.5, .16, .03, .28, '#1b2b31', 'metal'); boxP(12.5 + dx, 1.05, -1.5, .12, .01, .22, c, 'emissive'); } // test devices
+  lamp('qa-desk-lamp', 14.95, -1.65);
+  pylon('sign-qa', 9.6, 5, 'مختبر الجودة', 'QA Lab', {w: 1.9});
 
   // ---- CEO office
   desk('ceo-desk', -17, 12.6, {w: 2.9, d: 1.2, wood: '#6e4b33', screenFacing: 1, screenOwner: 'ceo', chairSide: 1});
   boxP(-21.3, .9, 12, .5, 1.8, 3.6, '#7a5a42', 'wood'); solid('ceo-shelf', -21.3, 12, .5, 3.6);
   boxP(-14, .4, 15.2, 2.6, .5, .9, '#4b5d63', 'fabric'); boxP(-14, .75, 15.6, 2.6, .5, .2, '#4b5d63', 'fabric'); solid('ceo-sofa', -14, 15.3, 2.6, 1);
   plant('ceo-plant', -13, 9, 1); rug(-17, 11, 4, 2.4, '#b49a7f');
+  boxP(-22.52, 1.6, 9.7, .04, 1.05, 1.6, '#2c4b52'); boxP(-22.49, 1.6, 9.7, .02, .9, 1.45, '#d9b98a', 'fabric'); // framed company map
+  lamp('ceo-lamp', -21.1, 15.3, {floor: true}); lamp('ceo-desk-lamp', -15.75, 12.75); mug(-18.1, .8, 12.4, '#e7b777');
+  pylon('sign-ceo-way', -14.6, 7.2, 'مكتب الرئيس التنفيذي', 'CEO Office', {w: 2.3, arrow: 'left'});
 
   // ---- Reception
   boxP(0, .55, 10.6, 4.4, 1.1, .9, '#e9e4d8', 'wood'); boxP(0, 1.13, 10.6, 4.6, .06, 1.1, COLORS.woodDark, 'wood'); solid('reception-desk', 0, 10.6, 4.4, .9);
   boxP(0, 2.1, 8.6, 4, .7, .1, COLORS.wallTrim); // ATLAS sign
-  boxP(0, 2.1, 8.66, 3.2, .3, .02, COLORS.gold, 'emissive');
+  sign('sign-atlas', 0, 2.1, 8.67, 3.8, .62, 'أطلس · الاستقبال', 'ATLAS · Reception');
+  pylon('way-west', -6.8, 8.7, 'المطورون · المدير التقني', 'Developers · Tech Director', {w: 2.5, arrow: 'left'});
+  pylon('way-east', 6.8, 8.7, 'الجودة · مدير المشاريع', 'QA Lab · Project Manager', {w: 2.5, arrow: 'right'});
   plant('rec-plant-w', -5, 15.2, 1.15); plant('rec-plant-e', 5, 15.2, 1.15);
   rug(0, 13.8, 5, 3, '#c2dad1');
 
@@ -187,9 +232,11 @@ export function buildWorld() {
   boxP(17, .4, 14.8, 3.4, .5, 1, '#5a7a83', 'fabric'); boxP(17, .78, 15.25, 3.4, .55, .2, '#5a7a83', 'fabric'); solid('lounge-sofa', 17, 14.9, 3.4, 1.1);
   cylP(17, .3, 12.6, .7, .06, '#e9e4d8', 'wood'); cylP(17, .15, 12.6, .08, .3, COLORS.steel, 'metal'); solid('lounge-table', 17, 12.6, 1.3, 1.3);
   plant('lounge-plant-1', 21, 9, 1.1); plant('lounge-plant-2', 13, 15.3, .9);
+  boxP(21.5, .5, 12.6, .7, 1, 1.4, '#d8d1c3', 'wood'); boxP(21.5, 1.2, 12.4, .45, .4, .4, '#2c3238', 'metal'); mug(21.5, 1, 12.95); solid('lounge-coffee', 21.5, 12.6, .7, 1.4);
+  pylon('sign-lounge', 12.6, 8.7, 'الاستراحة', 'Lounge', {w: 1.6});
 
   // Seated employees occupy space at their desks.
   for (const n of NPCS) solid(`${n.id}-avatar`, n.x, n.z, .7, .55);
 
-  return {primitives, colliders: colliders.map(Object.freeze), doors, screens, bounds: BOUNDS, interactables: INTERACTABLES, rooms: ROOMS, spawn: SPAWN, npcs: NPCS};
+  return {primitives, colliders: colliders.map(Object.freeze), doors, screens, signs, bounds: BOUNDS, interactables: INTERACTABLES, rooms: ROOMS, spawn: SPAWN, npcs: NPCS};
 }

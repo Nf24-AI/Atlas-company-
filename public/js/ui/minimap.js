@@ -21,7 +21,9 @@ export function createMinimap(canvas, world, {onTravel}) {
     if (room && world.interactables[room.id]) onTravel(room.id);
   });
   return {
+    resize, // COS-108: the map can start collapsed (0×0); re-measure when it opens
     draw(player, npcStates, nearby) {
+      if (!W || !H) { resize(); if (!W || !H) return; }
       ctx.clearRect(0, 0, W, H);
       ctx.fillStyle = '#1b3540'; ctx.fillRect(0, 0, (B.x1 - B.x0) * sx, (B.z1 - B.z0) * sx);
       for (const rm of world.rooms) {
@@ -34,7 +36,7 @@ export function createMinimap(canvas, world, {onTravel}) {
       }
       for (const n of world.npcs) {
         const [x, y] = toPx(n.x, n.z); ctx.beginPath(); ctx.arc(x, y, 3.5, 0, Math.PI * 2);
-        ctx.fillStyle = STATUS_COLORS[npcStates[n.id]?.status] || STATUS_COLORS.offline; ctx.fill();
+        ctx.fillStyle = STATUS_COLORS[npcStates[n.id]?.status] || STATUS_COLORS.unknown; ctx.fill();
       }
       const [px, py] = toPx(player.x, player.z);
       ctx.save(); ctx.translate(px, py); ctx.rotate(-player.heading + Math.PI);

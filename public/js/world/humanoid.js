@@ -1,5 +1,5 @@
 // Procedural low-poly humanoid (original, no external assets) with jointed limbs for walk,
-// idle, typing, thinking, talking and blocked poses. Animation is driven by real movement
+// idle, typing, thinking, reading, talking, waiting, done, blocked and unknown poses. Animation is driven by real movement
 // (walk phase advances with distance) and real employee status.
 export function createHumanoid(THREE, {coat, accent, skin, hair}) {
   const M = c => new THREE.MeshStandardMaterial({color: c, roughness: .75});
@@ -47,7 +47,15 @@ export function animateHumanoid(h, {phase = 0, moving = false, time = 0, pose = 
     else if (pose === 'thinking') { aR = -1.5; eR = -1.9; aL = .05; nod = .12 + Math.sin(time * .9) * .05; turn = Math.sin(time * .5) * .2; }
     else if (pose === 'talking') { aR = -.5 + Math.sin(time * 3) * .25; eR = -.8; aL = -.2 + Math.sin(time * 2.3) * .1; nod = Math.sin(time * 4) * .06; }
     else if (pose === 'blocked') { aL = aR = .1; eL = eR = -.1; nod = .35; lean = -.02; }
-    else { aL = .06 + breathe * 2; aR = -.06 - breathe * 2; eL = eR = -.12; }
+    else if (pose === 'reading') { aL = aR = -.75; eL = eR = -1.15; nod = .32 + Math.sin(time * .7) * .03; turn = Math.sin(time * .35) * .12; } // reviewing a document
+    else if (pose === 'waiting') { // awaiting the CEO: hand raised briefly every few seconds, otherwise hands clasped
+      const wave = Math.max(0, Math.sin(time * 1.3)) ** 6;
+      aL = -.35; eL = -.9; aR = -.35 - wave * 2.3; eR = -.9 + wave * .6; nod = -.05;
+    }
+    else if (pose === 'done') { aL = aR = .25; eL = eR = -2.1; lean = -.03; nod = -.06; } // hands on hips, upright
+    else if (pose === 'unknown') { aL = aR = 0; eL = eR = -.05; } // no data: neutral, no "busy" motion
+    else { aL = .06 + breathe * 2; aR = -.06 - breathe * 2; eL = eR = -.12; turn = pose === 'idle' ? Math.sin(time * .4) * .25 : 0; } // idle glances around
+
   }
   h.armL.root.rotation.x = aL; h.armR.root.rotation.x = aR;
   h.armL.joint.rotation.x = eL; h.armR.joint.rotation.x = eR;

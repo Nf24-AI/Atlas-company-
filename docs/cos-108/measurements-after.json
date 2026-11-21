@@ -1,0 +1,80 @@
+{
+  "label": "after",
+  "viewport": "1280x720",
+  "date": "2026-11-21T17:30:37.925Z",
+  "scenes": [
+    {
+      "scene": "reception",
+      "x": 0,
+      "z": 14,
+      "camera": "follow",
+      "file": "docs/cos-108/after-reception-follow.png",
+      "hudCoverPct": 15,
+      "fpsHeadless": 11.8,
+      "playerPx": 137,
+      "playerPctOfHeight": 19,
+      "method": "renderer projection"
+    },
+    {
+      "scene": "reception",
+      "x": 0,
+      "z": 14,
+      "camera": "overview",
+      "file": "docs/cos-108/after-reception-overview.png",
+      "hudCoverPct": 15,
+      "fpsHeadless": 15.1,
+      "playerPx": 31,
+      "playerPctOfHeight": 4.3,
+      "method": "renderer projection"
+    },
+    {
+      "scene": "pm-door",
+      "x": 17,
+      "z": -5,
+      "camera": "follow",
+      "file": "docs/cos-108/after-pm-door-follow.png",
+      "hudCoverPct": 15,
+      "fpsHeadless": 11.6,
+      "playerPx": 137,
+      "playerPctOfHeight": 19,
+      "method": "renderer projection"
+    },
+    {
+      "scene": "pm-door",
+      "x": 17,
+      "z": -5,
+      "camera": "overview",
+      "file": "docs/cos-108/after-pm-door-overview.png",
+      "hudCoverPct": 15,
+      "fpsHeadless": 15.5,
+      "playerPx": 31,
+      "playerPctOfHeight": 4.3,
+      "method": "renderer projection"
+    },
+    {
+      "scene": "developers",
+      "x": -16,
+      "z": 3,
+      "camera": "follow",
+      "file": "docs/cos-108/after-developers-follow.png",
+      "hudCoverPct": 15,
+      "fpsHeadless": 12.4,
+      "playerPx": 137,
+      "playerPctOfHeight": 19,
+      "method": "renderer projection"
+    },
+    {
+      "scene": "developers",
+      "x": -16,
+      "z": 3,
+      "camera": "overview",
+      "file": "docs/cos-108/after-developers-overview.png",
+      "hudCoverPct": 15,
+      "fpsHeadless": 14.4,
+      "playerPx": 31,
+      "playerPctOfHeight": 4.3,
+      "method": "renderer projection"
+    }
+  ],
+  "renderer": "three"
+}

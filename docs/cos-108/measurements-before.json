@@ -1,0 +1,44 @@
+{
+  "label": "before",
+  "viewport": "1280x720",
+  "date": "2026-11-21T17:28:21.080Z",
+  "scenes": [
+    {
+      "scene": "reception",
+      "x": 0,
+      "z": 14,
+      "camera": "default",
+      "file": "docs/cos-108/before-reception.png",
+      "hudCoverPct": 38.1,
+      "fpsHeadless": 14.3,
+      "playerPx": 60,
+      "playerPctOfHeight": 8.3,
+      "method": "analytic (camera offset 11,16,17; FOV 42°)"
+    },
+    {
+      "scene": "pm-door",
+      "x": 17,
+      "z": -5,
+      "camera": "default",
+      "file": "docs/cos-108/before-pm-door.png",
+      "hudCoverPct": 38.1,
+      "fpsHeadless": 14.2,
+      "playerPx": 60,
+      "playerPctOfHeight": 8.3,
+      "method": "analytic (camera offset 11,16,17; FOV 42°)"
+    },
+    {
+      "scene": "developers",
+      "x": -16,
+      "z": 3,
+      "camera": "default",
+      "file": "docs/cos-108/before-developers.png",
+      "hudCoverPct": 38.1,
+      "fpsHeadless": 14.4,
+      "playerPx": 60,
+      "playerPctOfHeight": 8.3,
+      "method": "analytic (camera offset 11,16,17; FOV 42°)"
+    }
+  ],
+  "renderer": "three"
+}
