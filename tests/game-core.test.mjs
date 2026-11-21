@@ -22,50 +22,50 @@ test('free movement is unchanged in open floor', () => {
   assert.ok(near(p.x, 0.5) && near(p.z, 6.7));
 });
 
-test('map boundaries clamp like the original prototype', () => {
-  assert.deepEqual(walk({x: 0, z: 7}, {x: 0, z: 1}, 3), {x: 0, z: BOUNDS.maxZ});
-  assert.equal(walk({x: 0, z: 5}, {x: 1, z: 0}, 5).x, BOUNDS.maxX);
-  assert.equal(walk({x: 0, z: 5}, {x: -1, z: 0}, 5).x, BOUNDS.minX);
+test('map boundaries clamp to the floor', () => {
+  assert.deepEqual(walk({x: 0, z: 12}, {x: 0, z: 1}, 3), {x: 0, z: BOUNDS.maxZ});
+  assert.equal(walk({x: 8, z: 6}, {x: 1, z: 0}, 5).x, BOUNDS.maxX);
+  assert.equal(walk({x: -8, z: 6}, {x: -1, z: 0}, 5).x, BOUNDS.minX);
 });
 
-test('cannot walk through the front partition of the manager office', () => {
-  const wall = byId('mgr-front-a');
-  const p = walk({x: -11, z: 5}, {x: 0, z: -1}, 3);
+test('cannot walk through the front wall of the Project Manager office', () => {
+  const wall = byId('pm-south-0');
+  const p = walk({x: 14, z: -4.5}, {x: 0, z: -1}, 3);
   assert.ok(near(p.z, wall.maxZ + R), `stopped at ${p.z}`);
   assert.ok(core.isWalkable(p.x, p.z));
 });
 
-test('both doorways of each office are walkable', () => {
-  for (const x of [-7.05, -2, 2, 7.05]) {
-    const p = walk({x, z: 6}, {x: 0, z: -1}, 2);
-    assert.ok(p.z < 1, `door at x=${x} blocked, stopped at z=${p.z}`);
+test('every walled office doorway is walkable', () => {
+  for (const [x, z0, dz] of [[-17, -4.5, -1], [0, -4.8, -1], [17, -4.5, -1], [-17, 6, 1]]) {
+    const p = walk({x, z: z0}, {x: 0, z: dz}, 1.2);
+    assert.ok(dz < 0 ? p.z < -7.5 : p.z > 8.5, `door at x=${x} blocked, stopped at z=${p.z}`);
   }
 });
 
-test('cannot walk through the side partition between the two offices', () => {
-  const p = walk({x: -3, z: 0}, {x: 1, z: 0}, 2);
-  assert.ok(near(p.x, byId('mgr-wall-east').minX - R), `stopped at ${p.x}`);
-  const q = walk({x: 3, z: 0}, {x: -1, z: 0}, 2);
-  assert.ok(near(q.x, byId('dir-wall-west').maxX + R), `stopped at ${q.x}`);
+test('cannot walk through the side walls between offices', () => {
+  const p = walk({x: -9, z: -11}, {x: -1, z: 0}, 2);
+  assert.ok(near(p.x, byId('td-east-0').maxX + R), `stopped at ${p.x}`);
+  const q = walk({x: 9, z: -11}, {x: 1, z: 0}, 2);
+  assert.ok(near(q.x, byId('pm-west-0').minX - R), `stopped at ${q.x}`);
 });
 
-test('desks block movement in both offices', () => {
-  for (const id of ['mgr-desk', 'dir-desk']) {
+test('desks block movement in both executive offices', () => {
+  for (const id of ['pm-desk', 'td-desk']) {
     const d = byId(id), cx = (d.minX + d.maxX) / 2;
-    const p = walk({x: cx, z: -8.5}, {x: 0, z: 1}, 2); // approach from behind the desk
-    assert.ok(near(p.z, d.minZ - R), `${id}: stopped at ${p.z}`);
+    const p = walk({x: cx, z: -9}, {x: 0, z: -1}, 2); // approach the front of the desk
+    assert.ok(near(p.z, d.maxZ + R), `${id}: stopped at ${p.z}`);
   }
 });
 
 test('player slides along a wall when walking diagonally into it', () => {
-  const p = walk({x: -12, z: 4}, {x: 1, z: -1}, 0.8);
-  assert.ok(near(p.z, byId('mgr-front-a').maxZ + R));
-  assert.ok(p.x > -12 + 1.5, `expected sliding along x, got ${p.x}`);
+  const p = walk({x: 13, z: -5.5}, {x: 1, z: -1}, 0.8);
+  assert.ok(near(p.z, byId('pm-south-0').maxZ + R));
+  assert.ok(p.x > 13 + 1.5, `expected sliding along x, got ${p.x}`);
 });
 
 test('large single steps cannot tunnel through thin walls', () => {
-  const p = core.moveWithCollisions(-11, 4, 0, -5);
-  assert.ok(p.z > 2.8, `tunnelled to ${p.z}`);
+  const p = core.moveWithCollisions(14, -5, 0, -5);
+  assert.ok(p.z > -7, `tunnelled to ${p.z}`);
 });
 
 test('every staff office and operations are reachable from the lobby spawn', () => {
@@ -171,13 +171,13 @@ test('every collider is backed by visible geometry (shared source of truth)', ()
   }
 });
 
-test('line of sight: cannot interact through a partition, can through a doorway', () => {
-  // Just outside the manager front partition, within 4 m of the manager: wall in between.
-  assert.equal(core.nearestInteractable({x: -10, z: 3.4}, INTERACTABLES, 7), null);
+test('line of sight: cannot interact through a wall, can through a doorway', () => {
+  // Just outside the PM office front wall, within range of the manager: wall in between.
+  assert.equal(core.nearestInteractable({x: 14.5, z: -6.5}, {manager: INTERACTABLES.manager}, 7), null);
   // Inside the office, facing the manager.
-  assert.equal(core.nearestInteractable({x: -10, z: -1.1}, INTERACTABLES)?.key, 'manager');
-  // Through the side partition between the two offices: blocked.
-  assert.equal(core.hasLineOfSight(-2, -3, 2, -3), false);
+  assert.equal(core.nearestInteractable({x: 17, z: -10.3}, INTERACTABLES, 3.2)?.key, 'manager');
+  // Through the side wall between the meeting room and the PM office: blocked.
+  assert.equal(core.hasLineOfSight(4, -12, 14, -12), false);
   // Open floor: clear.
   assert.equal(core.hasLineOfSight(-3, 6, 3, 6), true);
 });

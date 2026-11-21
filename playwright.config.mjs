@@ -6,6 +6,7 @@ import path from 'node:path';
 
 const APP_PORT = 3199, DEMO_PORT = 4199;
 const tmp = path.join(os.tmpdir(), `atlas-e2e-${process.pid}`);
+const AUTH = 'test-results/.auth-state.json';
 
 export default defineConfig({
   testDir: 'tests/e2e',
@@ -29,9 +30,10 @@ export default defineConfig({
     },
   ],
   projects: [
-    {name: 'chromium', use: {...devices['Desktop Chrome']}},
-    {name: 'firefox', use: {...devices['Desktop Firefox']}},
-    {name: 'webkit', use: {...devices['Desktop Safari']}},
-    {name: 'mobile-chromium', use: {...devices['Pixel 7']}, grep: /@mobile/},
+    // Creates the CEO account through the UI once and stores the session for the other projects.
+    {name: 'setup', testMatch: /auth\.setup\.mjs/},
+    ...[['chromium', 'Desktop Chrome'], ['firefox', 'Desktop Firefox'], ['webkit', 'Desktop Safari']].map(([name, device]) =>
+      ({name, use: {...devices[device], storageState: AUTH}, dependencies: ['setup'], testMatch: /\.spec\.mjs/})),
+    {name: 'mobile-chromium', use: {...devices['Pixel 7'], storageState: AUTH}, dependencies: ['setup'], testMatch: /\.spec\.mjs/, grep: /@mobile/},
   ],
 });
