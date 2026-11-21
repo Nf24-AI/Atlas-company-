@@ -13,7 +13,8 @@
 | COS-107 | Immersive 3D office, live status, voice, CEO workspace | 🔍 awaiting CEO review | PR #6 · `cos-107-immersive-office` (stacked on #5) |
 
 The PRs are **stacked**: each branch builds on the previous one. Review and merge them in order. Nothing is
-merged without CEO approval.
+merged without CEO approval. **PR #5 and PR #6 must be merged together.** On #5 alone, the browser UI still targets
+the old API, and its e2e CI job fails.
 
 ## What works (verified by automated tests — see [TEST-RESULTS.md](TEST-RESULTS.md))
 

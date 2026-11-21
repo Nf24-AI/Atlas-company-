@@ -1,7 +1,7 @@
 # Test results
 
 Actual results from runs on 2026-11-21. Environment: Windows 11, Node v24.19.0, Playwright 1.65.1 with its
-bundled Chromium, Firefox and WebKit. CI (`.github/workflows/ci.yml`) runs the same commands on Ubuntu; it passed on PRs #3, #4, #5 and #6.
+bundled Chromium, Firefox and WebKit. CI (`.github/workflows/ci.yml`) runs the same commands on Ubuntu; it **passed on PRs #3, #4 and #6** and **failed on PR #5** (see below).
 
 | Command | Result |
 |---|---|
@@ -12,6 +12,13 @@ bundled Chromium, Firefox and WebKit. CI (`.github/workflows/ci.yml`) runs the s
 | Static demo build + Pages guard (no keys/server code in `dist`) | ✅ |
 
 The 3D renderer was Three.js (WebGL) in all three engines. The Canvas2D fallback is reachable with `?canvas`.
+
+## CI failure on PR #5 (expected intermediate state)
+PR #5 (COS-104/105/106) replaces the backend API and adds authentication, but the browser UI and e2e tests
+on that branch are still the COS-102 versions written for the old API. The 16 browser tests fail with
+timeouts, because the old UI never becomes ready. The unit and API suites pass. The matching UI and e2e
+tests arrive in PR #6, where CI passes.
+**PR #5 must not be merged on its own.** Merge it together with PR #6.
 
 ## Coverage by category
 - **Unit / collision:** `tests/game-core.test.mjs`

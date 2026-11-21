@@ -6,7 +6,8 @@ For whoever (human or AI) continues ATLAS. Read [PROJECT-HUB.md](PROJECT-HUB.md)
 - `main` contains COS-101.
 - COS-102 → COS-107 are on **stacked branches** with PRs awaiting CEO review: 102 → 103 → 104-106 → 107.
   Merge them in order. Each PR's diff is relative to the previous branch.
-- All tests pass locally and in GitHub Actions CI on PRs #3–#6 (see [TEST-RESULTS.md](TEST-RESULTS.md)).
+- All tests pass locally on the final branch and in CI on PRs #3, #4 and #6. CI on PR #5 fails in the browser
+  tests, because its UI predates the new API. Merge #5 together with #6 (see [TEST-RESULTS.md](TEST-RESULTS.md)).
 - No production, staging or Pages deployment exists. There are no API keys in the environment.
 
 ## How the code fits together
