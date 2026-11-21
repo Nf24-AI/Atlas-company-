@@ -11,7 +11,8 @@
 | `npm run build:demo` | ok | ok |
 | `npm audit` | 0 vulnerabilities | 0 vulnerabilities |
 
-Skipped tests are mobile-only tests in desktop projects. Two earlier full runs each had a Firefox failure
+Skipped tests are mobile-only tests in desktop projects. **CI on PR #9 (Ubuntu): 61 passed, 8 skipped, 0 failed.** The two extra skips
+are the 3D camera-framing tests in Firefox, which has no WebGL on the runner and uses the Canvas2D fallback. Two earlier full runs each had a Firefox failure
 before any test code ran (Playwright could not open a browser context: a 1.8 h hang, then "Unable to restore
 IndexedDB"; the app does not use IndexedDB). Firefox passed 20 / 20 when re-run. Details and the WebKit test
 fix are in [cos-108/REPORT.md](cos-108/REPORT.md#test-results-actual-runs-windows-11-node-24190-playwright-1651).

@@ -110,6 +110,10 @@ The skipped tests are mobile-only tests in desktop projects.
 
 **Problems found and fixed during testing**
 - **WebKit:** my first W test held the key for a fixed 500 ms. Software-rendered WebKit moved only 0.78 m in that time, so the test failed. I changed it to wait until the player had walked 1 m, then check the direction. The assertion is the same and nothing is skipped.
+- **CI (Ubuntu), first two runs:**
+  - Headless Firefox on the runner has no WebGL, so the app correctly used the Canvas2D fallback. The two 3D camera-framing tests now skip, with a stated reason, only when the renderer is not Three.js. Locally, Firefox uses Three.js and runs them.
+  - The slower runner also showed that fixed waits for camera easing were too short. The tests now poll until the camera has converged. Assertions are unchanged.
+  - **CI result after these fixes:** 61 passed, 8 skipped, 0 failed (run 44933252433).
 - **Firefox:** in two runs, Playwright's Firefox driver failed to open a browser context before any test code ran. The errors were a 1.8 h hang and "Unable to restore IndexedDB"; the app does not use IndexedDB. Separate re-runs passed. This is recorded as an environment flake, not hidden.
 
 ## Limitations
