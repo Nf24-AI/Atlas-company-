@@ -14,12 +14,11 @@ const OUT = path.resolve(process.argv[2] || path.join(ROOT, 'dist'));
 const FORBIDDEN = /(^|[\\/])(\.env.*|.*\.sqlite.*|state\.json)$/i;
 fs.rmSync(OUT, {recursive: true, force: true});
 fs.cpSync(SRC, OUT, {recursive: true, filter: src => !FORBIDDEN.test(src)});
-const vendor = path.join(ROOT, 'node_modules', 'three', 'build', 'three.module.min.js');
-if (fs.existsSync(path.join(SRC, 'vendor')) === false && fs.existsSync(vendor)) {
-  // Three.js is served from node_modules by the local server; the static build needs a copy.
-  fs.mkdirSync(path.join(OUT, 'vendor'), {recursive: true});
-  fs.copyFileSync(vendor, path.join(OUT, 'vendor', 'three.module.min.js'));
-}
+// Three.js (MIT) is served from node_modules by the local server; the static build needs a copy.
+const threeBuild = path.join(ROOT, 'node_modules', 'three', 'build');
+fs.mkdirSync(path.join(OUT, 'vendor'), {recursive: true});
+for (const f of ['three.module.js', 'three.core.js']) fs.copyFileSync(path.join(threeBuild, f), path.join(OUT, 'vendor', f));
+fs.copyFileSync(path.join(ROOT, 'node_modules', 'three', 'LICENSE'), path.join(OUT, 'vendor', 'THREE-LICENSE.txt'));
 
 const indexPath = path.join(OUT, 'index.html');
 let html = fs.readFileSync(indexPath, 'utf8');

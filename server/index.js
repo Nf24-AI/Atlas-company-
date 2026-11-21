@@ -16,7 +16,8 @@ import {createOrchestrator} from './agents/orchestrator.js';
 import {registerRoutes} from './routes.js';
 
 const WEB = path.join(ROOT, 'public');
-const VENDOR = {'/vendor/three.module.min.js': path.join(ROOT, 'node_modules', 'three', 'build', 'three.module.min.js')};
+const THREE_BUILD = path.join(ROOT, 'node_modules', 'three', 'build');
+const VENDOR = {'/vendor/three.module.js': path.join(THREE_BUILD, 'three.module.js'), '/vendor/three.core.js': path.join(THREE_BUILD, 'three.core.js')};
 const MIME = {'.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'application/javascript; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.json': 'application/json'};
 const RATES = {auth: [10, 15 * 60e3], agent: [30, 10 * 60e3], mutate: [180, 60e3], read: [600, 60e3]};
 const LOOPBACK = new Set(['127.0.0.1', '::1', 'localhost']);
@@ -79,7 +80,7 @@ export function createApp(config = loadConfig(), {fetchImpl} = {}) {
       if (!full.startsWith(WEB + path.sep)) throw new HttpError(400, 'Invalid path');
     }
     if (!fs.existsSync(full) || !fs.statSync(full).isFile()) throw new HttpError(404, 'Not found');
-    res.writeHead(200, {'Content-Type': MIME[path.extname(full)] || 'application/octet-stream', 'Cache-Control': 'no-cache', ...SECURITY_HEADERS});
+    res.writeHead(200, {'Content-Type': MIME[path.extname(full)] || 'application/octet-stream', 'Cache-Control': VENDOR[pathname] ? 'public, max-age=86400' : 'no-cache', ...SECURITY_HEADERS});
     fs.createReadStream(full).pipe(res);
   }
 
