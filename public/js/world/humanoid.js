@@ -29,7 +29,7 @@ export function createHumanoid(THREE, {coat, accent, skin, hair}) {
   hips.add(legL.root, legR.root);
   const shadow = new THREE.Mesh(new THREE.CircleGeometry(.42, 24), new THREE.MeshBasicMaterial({color: '#000', transparent: true, opacity: .16, depthWrite: false}));
   shadow.rotation.x = -Math.PI / 2; shadow.position.y = .02; group.add(shadow);
-  return {group, hips, torso, neck, armL, armR, legL, legR, blend: 0};
+  return {group, fade: 1, hips, torso, neck, armL, armR, legL, legR, blend: 0};
 }
 
 export function animateHumanoid(h, {phase = 0, moving = false, time = 0, pose = 'stand'}) {

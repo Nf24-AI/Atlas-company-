@@ -104,6 +104,13 @@ details.run{margin:6px 0;background:#132f3b;border-radius:10px;padding:8px 12px}
 .room-banner{position:absolute;top:104px;left:50%;transform:translate(-50%,-6px);z-index:5;padding:8px 18px;border-radius:12px;background:rgba(11,28,39,.86);border:1px solid rgba(226,249,242,.16);color:#f5f1e9;font-weight:700;font-size:15px;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none}
 .room-banner.show{opacity:1;transform:translate(-50%,0)}
 .room-banner:empty{display:none}
+/* COS-110A third-person mouse control */
+.tp-hint{position:absolute;bottom:96px;left:50%;transform:translateX(-50%);z-index:5;display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;justify-content:center;max-width:min(92vw,640px);padding:10px 16px;border-radius:12px;background:rgba(11,28,39,.86);border:1px solid rgba(226,249,242,.16);color:#f5f1e9;font-size:13px}
+.tp-hint[hidden]{display:none}
+.tp-hint p{margin:0;flex-basis:100%;text-align:center;font-weight:600}
+.tp-hint label{display:flex;gap:6px;align-items:center}
+.tp-hint input[type=range]{width:120px;accent-color:#d9a35f}
+body[data-camera=third] #world{cursor:crosshair}
 .world-label.attention{box-shadow:0 0 0 3px color-mix(in srgb,var(--st) 35%,transparent),0 6px 16px #0016}
 @media(max-width:1020px){.hud-toggle .key{display:none}}
 @media(max-width:720px){
@@ -115,3 +122,5 @@ details.run{margin:6px 0;background:#132f3b;border-radius:10px;padding:8px 12px}
   .room-chip{display:none}
   .hud-bottom{width:calc(100% - 16px)}
 }
+body[data-renderer=canvas] #tpBtn{display:none}
+@media (pointer: coarse){#tpBtn{display:none}} /* mouse control is a desktop feature */

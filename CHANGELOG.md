@@ -1,5 +1,14 @@
 # Changelog
 
+## [Unreleased] — COS-110A (branch `cos-110a-third-person`, not merged)
+
+### COS-110A — Opt-in third-person mouse control
+- New camera mode `third` (F or the «تحكم بالماوس» button): over-the-shoulder rig, mouse look after an explicit click
+  (pointer lock; Esc releases), drag-to-look fallback, camera-relative WASD, Shift sprint with smoothed speed.
+- Camera obstruction against walls with avatar fading; panels and focus loss release the mouse and stop movement.
+- Sensitivity and invert-Y settings (this browser only). Default view and all COS-108 controls unchanged.
+- `public/js/core/third-person.js` (pure, unit-tested); 5 unit + 4 browser tests; `scripts/capture-cos110a.mjs`.
+
 ## [0.4.0] — 2026-11-21 (COS-108, merged into `main` via PR #9; not tagged or deployed)
 
 ### COS-108 — Immersive office experience

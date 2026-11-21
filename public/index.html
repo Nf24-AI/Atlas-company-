@@ -20,6 +20,7 @@
       <div class="top-actions">
         <button id="langBtn" class="btn ghost small" type="button" aria-label="Language">EN</button>
         <button id="camModeBtn" class="btn ghost small" type="button" aria-pressed="false" title="V"><span id="camModeIcon" aria-hidden="true">◱</span> <span class="btn-label" id="camModeLabel" data-i18n="overview">عرض علوي</span></button>
+        <button id="tpBtn" class="btn ghost small" type="button" aria-pressed="false" title="F"><span aria-hidden="true">🖱</span> <span class="btn-label" data-i18n="third">تحكم بالماوس</span></button>
         <button id="orbitBtn" class="btn ghost small" type="button" aria-pressed="false" title="C"><span id="orbitIcon">⟲</span> <span class="btn-label" data-i18n="orbit">كاميرا حرة</span></button>
         <button id="viewBtn" class="btn ghost small" type="button" title="R">↻ <span class="btn-label" data-i18n="recenter">إعادة التمركز</span></button>
         <button id="logoutBtn" class="btn ghost small" type="button" aria-label="تسجيل الخروج">⎋</button>
@@ -29,6 +30,7 @@
     <button id="teamToggle" class="hud-toggle team-toggle frosted" type="button" aria-controls="teamPanel" aria-expanded="false" title="T"><span class="hud-dots" aria-hidden="true"></span><span data-i18n="team">الفريق</span><span class="hud-alert" hidden></span><span class="key" aria-hidden="true">T</span></button>
     <button id="mapToggle" class="hud-toggle map-toggle frosted" type="button" aria-controls="mapPanel" aria-expanded="false" title="M"><span aria-hidden="true">▦</span><span data-i18n="map">الخريطة</span><span class="key" aria-hidden="true">M</span></button>
     <div id="roomBanner" class="room-banner" aria-live="polite"></div>
+    <div id="tpHint" class="tp-hint frosted" hidden><p id="tpHintText"></p><label><span data-i18n="sensitivity">الحساسية</span> <input id="tpSens" type="range" min="0.2" max="3" step="0.1"></label><label><input id="tpInvert" type="checkbox"> <span data-i18n="invertY">عكس المحور الرأسي</span></label></div>
 
     <aside id="teamPanel" class="sidebar frosted" aria-label="الموظفون">
       <div class="eyebrow">YOUR COMPANY</div>
@@ -39,7 +41,7 @@
 
     <div id="mapPanel" class="mini-map frosted"><div class="map-title">FLOOR MAP <span>01</span></div><canvas id="minimap" width="200" height="150" aria-label="خريطة الطابق — انقر على غرفة للانتقال"></canvas></div>
 
-    <div class="hud-bottom frosted"><div class="control-help"><span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span><span data-i18n="move">للحركة</span><span class="dot-divider">·</span><span class="key">E</span><span data-i18n="interact">للتفاعل</span><span class="dot-divider">·</span><span class="key">V</span><span data-i18n="viewKey">العرض</span><span class="dot-divider">·</span><span class="key">R</span><span data-i18n="recenterKey">تمركز</span></div><div class="target-status"><span id="roomChip" class="room-chip"></span><span id="nearbyText"></span><button id="interactBtn" class="btn primary" type="button" disabled></button></div></div>
+    <div class="hud-bottom frosted"><div class="control-help"><span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span><span data-i18n="move">للحركة</span><span class="dot-divider">·</span><span class="key">E</span><span data-i18n="interact">للتفاعل</span><span class="dot-divider">·</span><span class="key">V</span><span data-i18n="viewKey">العرض</span><span class="dot-divider">·</span><span class="key">R</span><span data-i18n="recenterKey">تمركز</span><span class="dot-divider">·</span><span class="key">F</span><span data-i18n="tpKey">الماوس</span></div><div class="target-status"><span id="roomChip" class="room-chip"></span><span id="nearbyText"></span><button id="interactBtn" class="btn primary" type="button" disabled></button></div></div>
 
     <div class="mobile-controls" aria-label="التحكم بالحركة"><button type="button" data-move="w" aria-label="أمام">▲</button><div><button type="button" data-move="a" aria-label="يسار">◀</button><button type="button" data-move="s" aria-label="خلف">▼</button><button type="button" data-move="d" aria-label="يمين">▶</button></div></div>
     <button id="mobileInteract" class="mobile-interact" type="button" hidden>E</button>
