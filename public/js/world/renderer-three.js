@@ -2,13 +2,14 @@
 // soft shadows, sliding glass doors, live monitor screens, bilingual signage and animated humanoid characters.
 // Animations and screens reflect REAL employee status from the API — nothing pretends to work.
 import * as THREE from '../../vendor/three.module.js';
-import {createHumanoid, animateHumanoid} from './humanoid.js';
+import {createHumanoid, createHumanoidHQ, animateHumanoid, seatHumanoid} from './humanoid.js';
+import {buildPmOffice, PM_MONITOR} from './office-pm.js';
 import {presenceFor} from './presence.js';
 
 import {STATUS_COLORS} from '../ui/status-colors.js';
 export {STATUS_COLORS};
 
-export function createThreeRenderer(canvas, world, {quality = 'high'} = {}) {
+export function createThreeRenderer(canvas, world, {quality = 'high', artSlice = true} = {}) {
   let renderer;
   try { renderer = new THREE.WebGLRenderer({canvas, antialias: quality === 'high', alpha: false, powerPreference: 'high-performance'}); }
   catch { return null; }
@@ -54,9 +55,25 @@ export function createThreeRenderer(canvas, world, {quality = 'high'} = {}) {
   };
   const geo = {box: new THREE.BoxGeometry(1, 1, 1), cyl: new THREE.CylinderGeometry(1, 1, 1, 20), sphere: new THREE.IcosahedronGeometry(1, 2)};
 
+  // ---- COS-109 art vertical slice: a small reflection environment (built in-engine, no HDR download) and the
+  // Project Manager office. Its block-out primitives (zone 'pm') are skipped here; colliders are untouched.
+  let pmOffice = null, envMap = null;
+  if (artSlice) {
+    const pmrem = new THREE.PMREMGenerator(renderer), env = new THREE.Scene();
+    env.add(new THREE.Mesh(new THREE.BoxGeometry(10, 6, 10), new THREE.MeshBasicMaterial({color: '#7d705f', side: THREE.BackSide})));
+    const panel = (w, h, d, x, y, z, c) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshBasicMaterial({color: c})); m.position.set(x, y, z); env.add(m); };
+    panel(5, .1, 5, 0, 2.9, 0, '#fff4e0');      // ceiling light
+    panel(.1, 2, 4, -4.9, 1.4, 0, '#d6ecff');   // window
+    panel(.1, 1.2, 1.2, 4.9, 1.4, 0, '#ffcf8f'); // warm lamp
+    envMap = pmrem.fromScene(env, .04).texture; pmrem.dispose();
+    pmOffice = buildPmOffice(THREE, {envMap});
+    scene.add(pmOffice.group); for (const l of pmOffice.lights) scene.add(l);
+  }
+
   // ---- static world
   const statics = new THREE.Group();
   for (const p of world.primitives) {
+    if (pmOffice && p.zone === 'pm') continue;
     const mesh = new THREE.Mesh(geo[p.shape], material(p.color, p.mat));
     mesh.position.set(p.x, p.y, p.z);
     if (p.shape === 'box') mesh.scale.set(p.w, p.h, p.d);
@@ -85,7 +102,8 @@ export function createThreeRenderer(canvas, world, {quality = 'high'} = {}) {
   });
 
   // ---- live monitors: canvas textures redrawn only when the owner's state changes
-  const screens = world.screens.map(s => {
+  const screens = world.screens.map(s0 => {
+    const s = pmOffice && s0.id === PM_MONITOR.id ? {...s0, x: PM_MONITOR.x, y: PM_MONITOR.y, z: PM_MONITOR.z} : s0;
     const cv = document.createElement('canvas'); cv.width = 256; cv.height = Math.round(256 * s.h / s.w);
     const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace;
     const mesh = new THREE.Mesh(new THREE.PlaneGeometry(s.w, s.h), new THREE.MeshBasicMaterial({map: tex, toneMapped: false}));
@@ -141,8 +159,10 @@ export function createThreeRenderer(canvas, world, {quality = 'high'} = {}) {
   const player = createHumanoid(THREE, {coat: '#1d5163', accent: '#253a44', skin: '#e1b48d', hair: '#2b2421'});
   scene.add(player.group);
   const npcs = new Map();
-  for (const n of world.npcs) {
-    const h = createHumanoid(THREE, {coat: n.coat, accent: n.accent, skin: n.skin, hair: '#2b2421'});
+  for (let n of world.npcs) {
+    const seated = pmOffice && n.id === 'manager' ? pmOffice.npcSeat : null; // COS-109: detailed, seated manager
+    if (seated) n = {...n, x: seated.x, z: seated.z, seat: seated.seat};
+    const h = seated ? createHumanoidHQ(THREE, {coat: n.coat, skin: n.skin, envMap}) : createHumanoid(THREE, {coat: n.coat, accent: n.accent, skin: n.skin, hair: '#2b2421'});
     h.group.position.set(n.x, 0, n.z); h.group.rotation.y = n.facing;
     // status beacon above the head
     const beacon = new THREE.Mesh(new THREE.OctahedronGeometry(.16, 0), new THREE.MeshStandardMaterial({color: '#63d9a3', emissive: '#63d9a3', emissiveIntensity: .8}));
@@ -192,10 +212,12 @@ export function createThreeRenderer(canvas, world, {quality = 'high'} = {}) {
         const focus = nearby === id ? 1.18 : 1; n.halo.scale.set(focus, focus, focus);
         n.beacon.position.y = 2.25 + (pr.status === 'unknown' ? 0 : Math.sin(time * 2 + n.x) * .05); n.beacon.rotation.y = pr.status === 'unknown' ? 0 : time * 1.5;
         const close = Math.hypot(p.x - n.x, p.z - n.z) < 3.4;
-        const want = close && pr.pose !== 'typing' ? Math.atan2(p.x - n.x, p.z - n.z) : n.facing;
+        let want = close && pr.pose !== 'typing' ? Math.atan2(p.x - n.x, p.z - n.z) : n.facing;
+        if (n.seat) want = n.facing + Math.max(-.5, Math.min(.5, Math.atan2(Math.sin(want - n.facing), Math.cos(want - n.facing)))); // seated: turn, don't spin
         n.yaw += Math.atan2(Math.sin(want - n.yaw), Math.cos(want - n.yaw)) * Math.min(1, dt * 4);
         n.h.group.rotation.y = n.yaw;
         animateHumanoid(n.h, {phase: 0, moving: false, time: time + n.x, pose: pr.pose});
+        if (n.seat) seatHumanoid(n.h, n.seat);
         poses[id] = pr.pose;
       }
 
@@ -208,6 +230,8 @@ export function createThreeRenderer(canvas, world, {quality = 'high'} = {}) {
         else if (st) drawScreen(s, {title: (st.label || s.owner).toUpperCase(), subtitle: st.statusText || st.status, color: STATUS_COLORS[st.status]});
         else drawScreen(s, {title: 'ATLAS', subtitle: 'idle', color: '#5f7d80'});
       }
+
+      pmOffice?.update(npcStates.__pmBoard || null); // sprint board: real task counts only
 
       // doors slide open when the player approaches
       for (const door of doors) {
@@ -227,7 +251,7 @@ export function createThreeRenderer(canvas, world, {quality = 'high'} = {}) {
 
       renderer.render(scene, camera);
       return {
-        width, height, poses,
+        width, height, poses, artSlice: pmOffice ? pmOffice.stats() : null,
         project: (x, y, z) => { v.set(x, y, z).project(camera); return [(v.x * .5 + .5) * width, (1 - (v.y * .5 + .5)) * height, v.z < 1]; },
       };
     },

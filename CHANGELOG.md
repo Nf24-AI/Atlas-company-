@@ -1,5 +1,16 @@
 # Changelog
 
+## [Unreleased] — COS-109 (branch `cos-109-pm-office-slice`, awaiting CEO visual approval)
+
+### COS-109 — Project Manager office art vertical slice
+- New `public/js/world/office-pm.js`: original procedural PM office (oak floor, wainscot, walnut slat wall, framed
+  windows, executive desk with accessories, leather chair, visitor chairs, lounge corner, credenza, arc lamp, plant,
+  rug), merged per material (31 meshes, ~18.8k triangles). Drawn on the same collider footprints (unit-tested).
+- Live ATLAS WORK sprint board in the office with real task counts and an honest empty state.
+- Detailed, seated Project Manager (`createHumanoidHQ`, `seatHumanoid`); same rig, so status poses are unchanged.
+- Lounge corner colliders; `?art=0` switch; capture-only `__atlas.debugView`; `scripts/capture-cos109.mjs`.
+- Headless (software WebGL) frame rate roughly halves in this office: see docs/cos-109/REPORT.md.
+
 ## [0.4.0] — 2026-11-21 (COS-108, merged into `main` via PR #9; not tagged or deployed)
 
 ### COS-108 — Immersive office experience

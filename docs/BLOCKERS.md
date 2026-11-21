@@ -12,6 +12,11 @@
 
 ## Known limitations
 
+- **COS-109 slice performance.** In headless software WebGL the PM office art slice roughly halves the frame rate
+  (e.g. 15.2 → 8.3 fps at 1280×720, follow camera). A real-GPU number has not been measured. `?art=0` disables the
+  slice. Planned fix after CEO approval of the look: baked lighting. Details: [cos-109/REPORT.md](cos-109/REPORT.md).
+- **COS-109 concept images unavailable.** The five ATLAS-Visual-Blueprint renders were not found locally and are
+  not in the repo, so the slice was not compared with concepts 01 and 04.
 - **Sandbox network is not restricted.** Node's permission model limits sandboxed test processes to the
   sandbox directory (fs) and blocks child processes, but not the network. Mitigation: secrets are scrubbed
   from the child environment. A container with `--network=none` is the proper fix (roadmap).
