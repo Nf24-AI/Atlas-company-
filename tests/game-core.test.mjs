@@ -1,7 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import * as core from '../public/game-core.js';
+import * as core from '../public/js/core/game-core.js';
+import {buildWorld, INTERACTABLES} from '../public/js/world/world-data.js';
+import {tessellate} from '../public/js/world/renderer-webgl.js';
 
 const {PLAYER_RADIUS: R, BOUNDS, OBSTACLES, DEFAULT_CAMERA, CAMERA_LIMITS} = core;
 const near = (a, b, eps = 1e-9) => Math.abs(a - b) < eps;
@@ -146,13 +148,59 @@ test('smoothing is frame-rate independent and angles wrap the short way', () => 
   assert.ok(near(core.angleDelta(3.1, -3.1), 2 * Math.PI - 6.2, 1e-9));
 });
 
-test('browser wiring loads the core module before the game script', () => {
+test('browser wiring loads the modular entry point and the old monolith is gone', () => {
   const html = fs.readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
-  const coreAt = html.indexOf('src="/game-core.js"'), appAt = html.indexOf('src="/app.js"');
-  assert.ok(coreAt > 0 && coreAt < appAt);
-  assert.match(html, /type="module" src="\/game-core.js"/);
+  assert.ok(html.includes('type="module" src="js/main.js"'));
   assert.match(html, /id="orbitBtn"/);
-  const app = fs.readFileSync(new URL('../public/app.js', import.meta.url), 'utf8');
-  assert.match(app, /Core\.moveWithCollisions/);
-  assert.doesNotMatch(app, /Math\.max\(-15,Math\.min\(15/, 'old clamp-only movement must be gone');
+  assert.ok(!fs.existsSync(new URL('../public/app.js', import.meta.url)));
+  const main = fs.readFileSync(new URL('../public/js/main.js', import.meta.url), 'utf8');
+  assert.match(main, /stepPlayer/);
+  assert.match(main, /nearestInteractable/);
+});
+
+test('every collider is backed by visible geometry (shared source of truth)', () => {
+  const {primitives, colliders} = buildWorld();
+  const invisible = ['mgr-avatar', 'dir-avatar']; // seated NPCs are drawn dynamically at the same spot
+  for (const c of colliders) {
+    if (invisible.includes(c.id)) continue;
+    const backed = primitives.some(p => {
+      const hw = p.shape === 'box' ? p.w / 2 : p.r, hd = p.shape === 'box' ? p.d / 2 : p.r;
+      return p.y + (p.h || 0) / 2 > 0.05 && p.x + hw > c.minX && p.x - hw < c.maxX && p.z + hd > c.minZ && p.z - hd < c.maxZ;
+    });
+    assert.ok(backed, `collider ${c.id} has no geometry`);
+  }
+});
+
+test('line of sight: cannot interact through a partition, can through a doorway', () => {
+  // Just outside the manager front partition, within 4 m of the manager: wall in between.
+  assert.equal(core.nearestInteractable({x: -10, z: 3.4}, INTERACTABLES, 7), null);
+  // Inside the office, facing the manager.
+  assert.equal(core.nearestInteractable({x: -10, z: -1.1}, INTERACTABLES)?.key, 'manager');
+  // Through the side partition between the two offices: blocked.
+  assert.equal(core.hasLineOfSight(-2, -3, 2, -3), false);
+  // Open floor: clear.
+  assert.equal(core.hasLineOfSight(-3, 6, 3, 6), true);
+});
+
+test('slab test handles axis-parallel segments and misses', () => {
+  const o = {minX: 0, maxX: 1, minZ: 0, maxZ: 1};
+  assert.equal(core.segmentHitsBox(-1, .5, 2, .5, o), true);
+  assert.equal(core.segmentHitsBox(-1, 2, 2, 2, o), false);
+  assert.equal(core.segmentHitsBox(.5, -1, .5, -.1, o), false);
+});
+
+test('pinch zoom: spreading fingers zooms in, clamped and spike-capped', () => {
+  const zin = core.applyPinch(DEFAULT_CAMERA, 1.1);
+  assert.ok(zin.distance < DEFAULT_CAMERA.distance);
+  const spike = core.applyPinch(DEFAULT_CAMERA, 50);
+  assert.ok(spike.distance >= DEFAULT_CAMERA.distance / (1 + CAMERA_LIMITS.maxWheelStep) - 1e-9);
+  assert.deepEqual(core.applyPinch(DEFAULT_CAMERA, NaN), DEFAULT_CAMERA);
+  let cam = DEFAULT_CAMERA; for (let i = 0; i < 100; i++) cam = core.applyPinch(cam, 1.15);
+  assert.equal(cam.distance, CAMERA_LIMITS.minDistance);
+});
+
+test('renderer tessellation produces whole triangles for every primitive', () => {
+  const data = tessellate(buildWorld().primitives);
+  assert.equal(data.length % 27, 0);
+  assert.ok(data.every(Number.isFinite));
 });
