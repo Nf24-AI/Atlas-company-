@@ -1,0 +1,45 @@
+# Handover
+
+For whoever (human or AI) continues ATLAS. Read [PROJECT-HUB.md](PROJECT-HUB.md) first.
+
+## State on 2026-11-21
+- `main` contains COS-101.
+- COS-102 → COS-107 are on **stacked branches** with PRs awaiting CEO review: 102 → 103 → 104-106 → 107.
+  Merge them in order. Each PR's diff is relative to the previous branch.
+- All tests pass locally (see [TEST-RESULTS.md](TEST-RESULTS.md)).
+- No production, staging or Pages deployment exists. There are no API keys in the environment.
+
+## How the code fits together
+- **World**
+  - `public/js/world/world-data.js` is the single source for geometry, colliders, doors, screens, rooms, NPCs
+    and interactables. Rendering and collision both come from it.
+  - Change the layout there, then run `npm test`. The flood-fill and line-of-sight tests catch unreachable
+    spots.
+- **Renderers**
+  - `renderer-three.js` is the default; `humanoid.js` draws the characters.
+  - `renderer-canvas.js` is the fallback (`?canvas`).
+  - Both consume the same primitives.
+- **UI**
+  - `public/js/ui/store.js` polls `GET /api/state`; `panels.js` renders offices and the CEO workspace.
+  - All model output is passed through `esc()`. Keep it that way.
+- **Server**
+  - `server/routes.js` holds the HTTP surface and `server/repo.js` the SQL, always scoped by `companyId`.
+  - `server/agents/orchestrator.js` drives the workflows; `jobs.js` is the per-company queue and stop.
+  - `providers.js` handles the models, pricing and budgets; `employees.js` holds the prompts and schemas.
+- **Sandbox:** `server/tools/*` contains the path policy, git, the test runner, GitHub and the tool registry. The
+  template repo for new projects is `server/sandbox-template/`.
+- **Static demo:** `public/js/net/demo-backend.js` mirrors the API in the browser and is labelled SIMULATED. If
+  you add routes, add them here too, or the Pages demo shows "Not available".
+
+## Rules that must not regress
+- Movement collision and no interaction through walls.
+- DEMO vs LIVE labelling.
+- CEO approval for plans, decisions and merges.
+- Tool allowlists and path policy.
+- Append-only audit.
+- Loopback binding.
+- No secrets in git.
+- No fake work animation: poses follow real status.
+
+## Next steps
+See [ROADMAP.md](ROADMAP.md). The pending CEO decisions are listed in [STATUS.md](STATUS.md#pending-ceo-approvals).

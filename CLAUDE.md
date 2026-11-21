@@ -1,34 +1,38 @@
 # ATLAS Company OS — Claude Code project instructions
 
 ## Mission
-Repository: `https://github.com/Nf24-AI/atlas-company-os` (after the owner creates and publishes it). Work on a separate branch and provide a PR. A public repo does not grant you write access unless GitHub authentication is configured.
+Repository: `https://github.com/Nf24-AI/Atlas-company-` (**public**). Work on separate branches and deliver
+reviewable PRs. Never force-push, never merge without CEO approval, never change repo visibility.
 
-Build a REAL browser-based 3D AI startup simulator, not a chat app. The human is CEO. First company has two AI employees: Project Manager (Groq GPT-OSS 120B), Technical Director (DeepSeek V4 Pro). A Developer and QA are future work. One company, one test product initially; no holding-company features yet.
+Build a REAL browser-based 3D AI company, not a chat app. The human is the CEO. The AI employees are a Project
+Manager (Groq GPT-OSS 120B), a Technical Director (DeepSeek V4 Pro), a Software Developer and a QA Engineer.
+There is one company, with one active project at a time (MVP).
 
 ## First read
-1. `README.md`
-2. `docs/PRODUCT_SPEC.md`
-3. `docs/TECH_ARCHITECTURE.md`
-4. `docs/WORK_ORDERS.md`
+1. `docs/PROJECT-HUB.md` (links to everything)
+2. `docs/STATUS.md` and `docs/BLOCKERS.md`
+3. `docs/HANDOVER.md`
 
-## Existing verified baseline
-- Start `node server.js`, open http://127.0.0.1:3099.
-- Run `npm test` before and after EACH change.
-- Current prototype is dependency-free Node HTTP + native WebGL + HTML/CSS/JS. Preserve this working baseline while evolving it. A standalone OFFLINE demo is `ATLAS-PLAYABLE-DEMO.html` and never calls real AI.
-- `public/app.js`: 3D scene, keyboard movement, office interaction, UI/voice.
-- `server.js`: model providers, draft decisions, CEO approvals, local JSON persistence.
+## Verified baseline
+- `npm ci && npm start`, then open http://127.0.0.1:3099 (DEMO mode with no keys).
+- Run `npm run lint && npm test && npx playwright test` before and after each change.
+- The stack is native ES modules + Three.js (vendored from node_modules) on the client, and a Node HTTP server
+  with `node:sqlite` on the server. See ADR-001.
 
 ## Non-negotiable engineering rules
-- Do not claim an AI agent wrote code, used GitHub, tested a repo, or deployed unless an actual tool action and auditable artifact prove it.
-- Do not silently replace the game with a chat page. Preserve world movement, character, E-to-interact, independent offices, RTL Arabic-first UI.
-- Make changes in small, reviewable steps and preserve user-facing behavior; add/maintain tests for any changes.
-- Existing server has NO AUTH. Bind to localhost ONLY. Do NOT publish it to the public internet or Vercel. Production needs authentication, RLS, server-side validation, CSRF/origin controls as appropriate, audit trails and rate limits.
-- NEVER put provider credentials in frontend, .env.example, test fixtures, logs or git. All sensitive keys stay server-side.
-- All agent output is untrusted. Validate structured data on server; proposals are drafts. CEO must approve material actions. Never auto-deploy, charge, buy, delete repositories, or create external accounts.
-- No autonomous/background claims without scheduled or event-driven infrastructure.
-- Do not add paid services, external assets with unclear licensing, or dependencies without explanation.
-- Before changing model IDs or SDK APIs, confirm their current official provider docs.
-- Separate actual behavior from mocks. Clearly label DEMO vs LIVE.
+- Never claim an agent wrote code, used GitHub, tested or deployed anything unless a recorded tool execution
+  or artifact proves it.
+- Preserve: world movement, collisions, E-to-interact with line of sight, independent offices, RTL Arabic-first UI.
+- Keep the server on loopback. Public exposure needs approved, authenticated staging (`docs/DEPLOYMENT.md`).
+- Keep credentials out of the frontend, `.env.example`, fixtures, logs and git.
+- Agent output is untrusted: validate it on the server and escape it in the UI. CEO approval is required for
+  plans, decisions, merges, deployments, spending, destructive actions, account creation and permission changes.
+- Add no paid services, unlicensed assets or unexplained dependencies. Do not fall back to unpriced or more
+  expensive models.
+- Before changing model IDs or prices, confirm the official provider docs, then update `docs/COSTS.md`.
+- Label DEMO, LIVE and SIMULATED (static) behaviour accurately.
 
-## Assignment to Claude
-Implement ONE work order at a time, beginning with `COS-101` in `docs/WORK_ORDERS.md`. For each: write a short implementation plan, change code, run tests, explain evidence, list limitations, and request review. Do not begin the next work order without CEO acceptance.
+## Process
+Work in small, reviewable steps, one work order or roadmap item per branch. For each: plan, implement, test,
+record evidence in `docs/TEST-RESULTS.md` and `docs/STATUS.md`, list limitations in `docs/BLOCKERS.md`, add a
+`CHANGELOG.md` entry, open a PR and request review.

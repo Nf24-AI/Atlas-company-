@@ -112,6 +112,8 @@ test.describe('local server (DEMO mode)', () => {
     await expect.poll(async () => (await stateOf(page)).tasks.some(t => t.status === 'done'), {timeout: 30_000}).toBe(true);
     await page.click('[data-act=tab][data-id=employees]');
     await expect(page.locator('.ws-body')).toContainText('system');
+    await page.click('[data-act=tab][data-id=audit]');
+    await expect(page.locator('.ws-body table.mini')).toContainText('pr.merged');
   });
 
   test('emergency stop halts agents and is visible; resume restores', async ({page}) => {

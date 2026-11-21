@@ -1,9 +1,12 @@
 # ATLAS — Company OS
 
-An **Arabic-first 3D browser startup simulator**, built to let a human CEO interact with AI staff, assign projects, approve draft tasks and evaluate real outcomes. First company has **Manager** and **Technical Director**, with Developer and QA planned later.
+An **Arabic-first 3D browser office** where a human CEO walks between rooms and directs AI employees.
+The staff are a Project Manager, a Technical Director, a Software Developer and a QA Engineer. They plan
+projects, debate decisions, change code in an isolated sandbox repository, test it, and ask the CEO for approval.
 
-> **Current state:** working local prototype + **offline-only public game demo**. This is not a production-ready multi-user service. The public demo uses simulated replies — it does not connect to AI providers.
-
+> **Status:** MVP (COS-101 → COS-107) awaiting CEO review. It runs locally. LIVE AI needs your own API keys;
+> without them every employee runs in clearly labelled **DEMO** mode at $0.
+> Start at the **[Project Hub](docs/PROJECT-HUB.md)**.
 
 ## Screenshots
 
@@ -11,69 +14,63 @@ An **Arabic-first 3D browser startup simulator**, built to let a human CEO inter
 |---|---|
 | ![ATLAS company office](preview-desktop.jpg) | ![ATLAS manager office](preview-manager.jpg) |
 
-| Operations | Mobile |
+| CEO workspace | Mobile |
 |---|---|
-| ![ATLAS operations center](preview-operations.jpg) | ![ATLAS mobile layout](preview-mobile.jpg) |
+| ![ATLAS CEO workspace](preview-operations.jpg) | ![ATLAS mobile layout](preview-mobile.jpg) |
 
-## Try the game
+## Run locally
 
-**Option A — Public static demo:** Open the GitHub Pages URL once Pages is enabled (see [PUBLISHING.md](PUBLISHING.md)). Or download and open [`ATLAS-PLAYABLE-DEMO.html`](ATLAS-PLAYABLE-DEMO.html) in a modern desktop browser. It saves its test state using browser `localStorage`.
-
-**Option B — Local app with API and persistent state:** Requires Node.js 20+ (no npm dependencies to install):
+Requires **Node.js ≥ 22.13** (uses the built-in `node:sqlite`).
 
 ```bash
-npm start
-# http://127.0.0.1:3099
+npm ci
+npm start            # http://127.0.0.1:3099 — first visit creates the local CEO account
 ```
 
-The backend binds **127.0.0.1** on purpose. Never expose this insecure API publicly. It writes state to the ignored `data/state.json` file.
+The server binds to `127.0.0.1` and refuses other hosts unless you explicitly opt in (see
+[DEPLOYMENT.md](docs/DEPLOYMENT.md)). Data lives in the git-ignored `data/` folder.
 
-## Real AI (local testing only)
-
-Copy `.env.example` to `.env`, insert your own `GROQ_API_KEY` and/or `DEEPSEEK_API_KEY`, and restart the server. The browser never receives these credentials. Confirm the model IDs in each provider's current documentation.
-
-- **Manager** — Groq, `openai/gpt-oss-120b` by default.
-- **Director** — DeepSeek; model is configured with `DIRECTOR_MODEL` and should be checked for current availability.
-- If keys are absent, each employee clearly runs in **DEMO** mode with deterministic fake responses.
-
-API usage may incur charges. No background development, GitHub code edits or deployment tools exist in this prototype yet. Proposals remain **pending** until the human approves them.
+### Modes
+| Mode | When | What is real |
+|---|---|---|
+| **DEMO** | no API key for that employee's provider | Replies, plans and code patches are **pre-written**. File edits, test runs and git commits in the sandbox are **real** |
+| **LIVE** | `GROQ_API_KEY` / `DEEPSEEK_API_KEY` set in `.env` | Real model calls (paid), with budgets and cost tracking |
+| **STATIC DEMO** | GitHub Pages build (`npm run build:demo`) | Nothing. A browser-only simulation, labelled as such |
 
 ## Controls
+- Move with `W A S D` or the arrow keys; touch buttons on mobile.
+- Interact with `E` when you are inside an office and can see the employee. Walls block both movement and
+  interaction.
+- `C` toggles the free camera (drag to orbit, wheel or pinch to zoom). `Esc` closes panels.
+- The mini-map shows live employee status; click a room to travel there.
+- Talk with push-to-talk (browser speech, with consent first) or type.
 
-- Move: `W`, `A`, `S`, `D` (or arrow keys).
-- Interact: `E` near a staff office, or use mini-map access.
-- Walls, partitions and furniture are solid; walk in through the open gaps in each office's front partition.
-- Camera: the default isometric follow camera needs no input. Press **كاميرا حرة** (or `C`) to orbit by dragging and zoom with the mouse wheel; press `C` again or **إعادة تمركز الكاميرا** to return to the default view.
-- Talk: browser microphone (where supported), with text fallback.
-- Visit **Operations Center** to inspect draft approvals and approved tasks.
+## The workflow
+1. Ask the **Project Manager** for a project. They challenge unrealistic requests and write a plan with tasks
+   and acceptance criteria.
+2. Important technical decisions are escalated to the **Technical Director** for an evidence-based review.
+3. You approve the plan and the decisions in the **CEO office**.
+4. The **Developer** implements the work in the sandbox repo: files, tests, a commit, and a PR (local, or GitHub
+   if configured).
+5. **QA** writes independent tests. The system re-runs them, and failures send the work back for rework.
+6. You review the diff and QA evidence, then approve the merge, and evaluate employees. Costs, budgets, the audit
+   log and an emergency stop are all in the CEO workspace.
 
 ## Quality
-
 ```bash
-npm test
+npm run lint && npm test && npx playwright test
 ```
-
-Current automated coverage: basic page availability, Manager draft task, CEO approval and persistence, Director escalation, duplicate-approval rejection, plus movement, collision and camera maths in `public/game-core.js` (`tests/game-core.test.mjs`). See [`docs/cos-101/REPORT.md`](docs/cos-101/REPORT.md) for manual browser steps.
-
-## For Claude Code
-
-Read [`CLAUDE.md`](CLAUDE.md), [`docs/PRODUCT_SPEC.md`](docs/PRODUCT_SPEC.md), and [`docs/WORK_ORDERS.md`](docs/WORK_ORDERS.md). Start with **COS-101** only. Create a branch and small Pull Request; don't rewrite as a chat app. Do not claim features or tests you haven't actually executed.
+Results: [docs/TEST-RESULTS.md](docs/TEST-RESULTS.md).
 
 ## Repository map
-
 | Path | Contents |
 |---|---|
-| `ATLAS-PLAYABLE-DEMO.html` | Standalone static/offline game demo (simulated AI) |
-| `public/` | 3D browser UI and interactions for local server |
-| `server.js` | Local API, model connectors, drafts/approvals and JSON persistence |
-| `tests/` | Node built-in test suite |
-| `docs/` | Product, architecture, work orders, test protocol |
-| `CLAUDE.md` | AI developer handoff and guardrails |
-| `.github/workflows/` | CI tests and optional static Pages publication |
-| `PUBLISHING.md` | Public repo / GitHub Pages / Claude setup |
+| `public/` | Browser app (ES modules, no bundler): `js/core` maths/collision, `js/world` world data and renderers, `js/game` player/camera/input, `js/ui` panels, `js/net` API client and static demo backend, `js/voice` |
+| `server/` | HTTP server, auth, SQLite repo and migrations, AI employees (`agents/`), sandbox tools (`tools/`) |
+| `supabase/` | Postgres + RLS schema for a future cloud deployment (untested) |
+| `tests/` | node:test suites and Playwright e2e |
+| `docs/` | Hub, status, roadmap, architecture, API, DB, security, costs, deployment, handover |
 
-## Security
-
-This repo is public **source code**, not a secure public SaaS. It has no user authentication or authorization. Do not host `server.js` on a publicly reachable endpoint until auth, access control, persistence and security review are implemented. Never commit keys, transcripts, private customer data or `data/state.json`.
-
-No license is granted at this stage; add an explicit license only when the owner chooses one.
+## Security and privacy
+Read [SECURITY.md](SECURITY.md). This repository is **public**: do not commit keys, `.env`, `data/`,
+transcripts or personal data. No license is granted yet.

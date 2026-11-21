@@ -10,7 +10,7 @@ const now = () => new Date().toISOString();
 const uid = () => Math.random().toString(16).slice(2, 10) + Date.now().toString(16).slice(-6);
 const ROLE_NAMES = {manager: 'مدير المشاريع', director: 'المدير التقني', developer: 'المطوّر', qa: 'مهندس الجودة'};
 const MODELS = {manager: ['groq', 'openai/gpt-oss-120b'], director: ['deepseek', 'deepseek-v4-pro'], developer: ['deepseek', 'deepseek-flash'], qa: ['groq', 'openai/gpt-oss-120b']};
-const PERMS = {manager: ['meeting.respond', 'project.plan', 'task.propose', 'decision.escalate'], director: ['meeting.respond', 'decision.review'], developer: ['meeting.respond', 'sandbox.read', 'sandbox.write', 'sandbox.test', 'git.commit', 'pr.open'], qa: ['meeting.respond', 'sandbox.read', 'sandbox.write_tests', 'sandbox.test', 'qa.report']};
+const PERMS = {manager: ['meeting.reply', 'project.plan', 'decision.escalate', 'task.assign'], director: ['meeting.reply', 'decision.review'], developer: ['meeting.reply', 'sandbox.read', 'sandbox.write.src', 'tests.run', 'git.branch_commit', 'pr.open'], qa: ['meeting.reply', 'sandbox.read', 'sandbox.write.qa', 'tests.run', 'qa.report']};
 
 function fresh() {
   return {
@@ -97,6 +97,7 @@ export function createDemoBackend(storage) {
     'POST /api/agents/stop': () => { s.halted = true; return {ok: true}; },
     'POST /api/agents/resume': () => { s.halted = false; return {ok: true}; },
     'POST /api/settings/budget': () => ({ok: true}),
+    'GET /api/audit': () => ({audit: []}),
   };
 
   return {

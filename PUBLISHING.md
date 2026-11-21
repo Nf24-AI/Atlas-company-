@@ -1,3 +1,5 @@
+> **Note (2026-11-21):** the repository already exists at `Nf24-AI/Atlas-company-`. Sections 1–2 are historical. For current deployment see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+
 # Publishing ATLAS to GitHub — safe setup
 
 ## 1. Create the PUBLIC repository
@@ -30,7 +32,7 @@ After the first push:
 3. Open **Actions** and rerun the **Publish static game demo** workflow if needed.
 4. When deployment succeeds, visit `https://nf24-ai.github.io/atlas-company-os/`.
 
-This deploys only `ATLAS-PLAYABLE-DEMO.html` renamed to `index.html`. It contains no API secrets and provides deterministic simulated AI. It does **not** deploy `server.js` or give internet access to live AI.
+This deploys only the static build of `public/` (`scripts/build-demo.mjs`) with the in-browser simulated backend. It contains no API secrets and no company data; every output is labelled SIMULATED. It does **not** deploy `server.js` or give internet access to live AI.
 
 ## 4. Give Claude access to the repository
 

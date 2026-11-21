@@ -209,7 +209,7 @@ export function createPanels({store, offices, onClose}) {
   const TABS = [['overview', 'نظرة عامة', 'Overview'], ['tasks', 'المهام', 'Tasks'], ['approvals', 'الموافقات', 'Approvals'], ['deliverables', 'التسليمات', 'Deliverables'], ['employees', 'الموظفون', 'Employees'], ['costs', 'التكاليف', 'Costs'], ['audit', 'السجل', 'Audit']];
   function workspace() {
     const tabs = `<nav class="tabs" role="tablist">${TABS.map(([k, ar, en]) => `<button role="tab" aria-selected="${wsTab === k}" class="${wsTab === k ? 'on' : ''}" data-act="tab" data-id="${k}">${esc(L(ar, en))}${k === 'approvals' && pendingCount() ? ` <span class="badge">${pendingCount()}</span>` : ''}</button>`).join('')}</nav>`;
-    const body = taskView ? taskDetail() : ({overview: wsOverview, tasks: () => kanban(), approvals: wsApprovals, deliverables: wsDeliverables, employees: wsEmployees, costs: wsCosts, audit: () => `<div id="auditBox">${activity(30)}</div>`})[wsTab]();
+    const body = taskView ? taskDetail() : ({overview: wsOverview, tasks: () => kanban(), approvals: wsApprovals, deliverables: wsDeliverables, employees: wsEmployees, costs: wsCosts, audit: wsAudit})[wsTab]();
     return tabs + `<div class="ws-body">${body}</div>`;
   }
   const pendingCount = () => d().approvals.filter(a => a.status === 'pending').length + d().decisions.filter(x => x.status === 'awaiting_ceo').length + d().tasks.filter(x => x.status === 'proposed' && store.activeProject()?.status === 'active').length;
@@ -254,6 +254,11 @@ export function createPanels({store, offices, onClose}) {
           <label>${L('ملاحظة', 'Comment')}<textarea name="comment" rows="2" maxlength="2000"></textarea></label><button class="btn primary small" type="submit">${L('حفظ التقييم (لا يمكن تعديله لاحقًا)', 'Save evaluation (immutable)')}</button></form></details></article>`;
     }).join('');
   }
+  let auditRows = null;
+  function wsAudit() {
+    if (!auditRows) { api('/api/audit').then(r => { auditRows = r.audit; render(); }).catch(e => toast(e.message)); return `<p>${L('جارٍ التحميل…', 'Loading…')}</p>`; }
+    return `<p class="muted">${L('سجل غير قابل للتعديل أو الحذف (append-only).', 'Append-only log (cannot be edited or deleted).')}</p>` + (auditRows.length ? `<table class="mini"><tbody>${auditRows.map(a => `<tr><td>${fmtTime(a.at)}</td><td>${esc(a.actorType)}</td><td class="mono">${esc(a.action)}</td><td>${esc(a.targetType || '')}</td></tr>`).join('')}</tbody></table>` : empty('—'));
+  }
   function wsCosts() {
     const u = d().usage;
     return `<div class="office-stats"><div><small>${L('الإنفاق منذ', 'Spend since')} ${esc(u.since.slice(0, 10))}</small><strong>${usd(u.totalUsd)}</strong></div><div><small>${L('ميزانية الشهر', 'Monthly budget')}</small><strong>$${u.budgetUsd}</strong></div><div><small>${L('مزودون LIVE', 'Live providers')}</small><strong>${Object.entries(d().liveProviders).filter(([, v]) => v).map(([k]) => k).join(', ') || '0'}</strong></div></div>
@@ -286,7 +291,7 @@ export function createPanels({store, offices, onClose}) {
     const b = e.target.closest('[data-act]'); if (!b) return;
     const id = b.dataset.id, yes = b.dataset.approve === '1';
     switch (b.dataset.act) {
-      case 'tab': wsTab = id; taskView = null; render(); break;
+      case 'tab': wsTab = id; taskView = null; if (id === 'audit') auditRows = null; render(); break;
       case 'back': taskView = null; render(); break;
       case 'task': openTask(id); break;
       case 'plan': act(() => api(`/api/projects/${id}/plan`, {}), L('بدأ المدير إعداد الخطة', 'The Manager started planning')); break;
