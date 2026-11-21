@@ -17,6 +17,10 @@ All four PRs were merged into `main` on 2026-11-21 with CEO approval, in order, 
 PR #6 was merged into PR #5's branch first, so `main` never held the new backend without its UI. CI passed
 on the combined PR #5 and on `main` after the merge.
 
+## COS-110A in review (not merged)
+Opt-in third-person mouse control on branch `cos-110a-third-person`. Default view unchanged. Pointer lock still
+needs a manual check in a real browser. Evidence: [cos-110a/REPORT.md](cos-110a/REPORT.md).
+
 ## COS-108 merged
 Close follow camera with optional overview (V) and re-centre (R); collapsible roster (T) and map (M); employee
 poses and status rings driven only by real store data; bilingual signage, wayfinding and room details. Evidence:

@@ -1,5 +1,19 @@
 # Test results
 
+## COS-110A (branch `cos-110a-third-person`, not merged), 2026-11-22
+
+| Command | Result |
+|---|---|
+| `npm run lint` | OK |
+| `npm test` | 57 / 57 (5 new in `tests/cos110a.test.mjs`) |
+| `npx playwright test` (all projects) | 74 passed, 6 skipped, 1 failed (6.4 min) |
+| Re-run: mobile project | 6 / 6 passed (24 s) |
+
+The failure was `COS-108 HUD › mobile: HUD toggles work by touch` timing out (45 s) on the loaded machine. The run that
+failed took 2.6 min for the mobile project; alone and on the full mobile re-run it passed. While investigating, the
+new mouse-control button was hidden on touch devices (it is a desktop feature). 4 new browser tests in
+`tests/e2e/cos110a.spec.mjs` pass. Pointer lock itself is not automated (needs a real user gesture).
+
 ## COS-108 (merged in PR #9), 2026-11-21
 
 | Command | Baseline (`main`) | After COS-108 |

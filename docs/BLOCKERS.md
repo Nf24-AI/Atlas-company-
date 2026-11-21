@@ -12,6 +12,9 @@
 
 ## Known limitations
 
+- **COS-110A pointer lock is untested by automation** (needs a real user gesture). Mouse-look maths and the same
+  code path are tested; a manual click-to-capture check in Chrome/Edge/Firefox is pending. See
+  [cos-110a/REPORT.md](cos-110a/REPORT.md).
 - **Sandbox network is not restricted.** Node's permission model limits sandboxed test processes to the
   sandbox directory (fs) and blocks child processes, but not the network. Mitigation: secrets are scrubbed
   from the child environment. A container with `--network=none` is the proper fix (roadmap).

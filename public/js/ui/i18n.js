@@ -3,7 +3,7 @@
 const DICT = {
   ar: {
     move: 'للحركة', interact: 'للتفاعل', explore: 'تجوّل واقترب من أحد الموظفين', approach: 'اقترب من أحد المكاتب', enter: 'الدخول · E',
-    location: 'الموقع', orbit: 'كاميرا حرة', recenter: 'إعادة التمركز', overview: 'عرض علوي', follow: 'متابعة قريبة', viewKey: 'العرض', recenterKey: 'تمركز', team: 'الفريق', map: 'الخريطة', lang: 'English', close: 'إغلاق', send: 'إرسال إلى', speak: 'ابدأ التحدث', stopVoice: 'إيقاف',
+    location: 'الموقع', orbit: 'كاميرا حرة', recenter: 'إعادة التمركز', overview: 'عرض علوي', third: 'تحكم بالماوس', tpKey: 'الماوس', sensitivity: 'الحساسية', invertY: 'عكس المحور الرأسي', follow: 'متابعة قريبة', viewKey: 'العرض', recenterKey: 'تمركز', team: 'الفريق', map: 'الخريطة', lang: 'English', close: 'إغلاق', send: 'إرسال إلى', speak: 'ابدأ التحدث', stopVoice: 'إيقاف',
     listening: 'أستمع إليك…', speaking: 'يتحدث…', thinking: 'يراجع طلبك…', ready: 'جاهز للاستماع', textFallback: 'كتابة بدل الصوت',
     status: {available: 'متاح', planning: 'يخطط', in_meeting: 'في اجتماع', executing: 'ينفّذ', reviewing: 'يراجع', blocked: 'متوقف', awaiting_approval: 'بانتظار موافقتك', completed: 'أنجز', unknown: 'غير معروف', human: 'أنت'},
     task: {proposed: 'مقترحة', todo: 'معتمدة', in_progress: 'قيد التطوير', in_qa: 'قيد الاختبار', rework: 'إعادة عمل', awaiting_ceo: 'بانتظار CEO', done: 'منجزة', rejected: 'مرفوضة', blocked: 'متعثرة'},
@@ -14,7 +14,7 @@ const DICT = {
   },
   en: {
     move: 'move', interact: 'interact', explore: 'Walk around and approach an employee', approach: 'Approach an office', enter: 'Enter · E',
-    location: 'Location', orbit: 'Free camera', recenter: 'Recenter', overview: 'Overview', follow: 'Close view', viewKey: 'view', recenterKey: 'recenter', team: 'Team', map: 'Map', lang: 'العربية', close: 'Close', send: 'Send to', speak: 'Start talking', stopVoice: 'Stop',
+    location: 'Location', orbit: 'Free camera', recenter: 'Recenter', overview: 'Overview', third: 'Mouse control', tpKey: 'mouse', sensitivity: 'Sensitivity', invertY: 'Invert Y', follow: 'Close view', viewKey: 'view', recenterKey: 'recenter', team: 'Team', map: 'Map', lang: 'العربية', close: 'Close', send: 'Send to', speak: 'Start talking', stopVoice: 'Stop',
     listening: 'Listening…', speaking: 'Speaking…', thinking: 'Reviewing your request…', ready: 'Ready to listen', textFallback: 'Type instead',
     status: {available: 'Available', planning: 'Planning', in_meeting: 'In meeting', executing: 'Executing', reviewing: 'Reviewing', blocked: 'Blocked', awaiting_approval: 'Awaiting approval', completed: 'Completed', unknown: 'Unknown', human: 'You'},
     task: {proposed: 'Proposed', todo: 'Approved', in_progress: 'In development', in_qa: 'In QA', rework: 'Rework', awaiting_ceo: 'Awaiting CEO', done: 'Done', rejected: 'Rejected', blocked: 'Blocked'},

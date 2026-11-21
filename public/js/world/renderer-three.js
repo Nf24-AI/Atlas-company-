@@ -168,7 +168,7 @@ export function createThreeRenderer(canvas, world, {quality = 'high'} = {}) {
         width = rect.width; height = rect.height;
         renderer.setSize(width, height, false); camera.aspect = width / Math.max(1, height); camera.updateProjectionMatrix();
       }
-      camera.position.set(eye[0], eye[1], eye[2]); camera.lookAt(target[0], 1, target[2]);
+      camera.position.set(eye[0], eye[1], eye[2]); camera.lookAt(target[0], target[1] ?? 1, target[2]); // follow/overview look at y=1; third-person looks at head height
       sun.position.set(p.x - 14, 30, p.z + 10); sun.target.position.set(p.x, 0, p.z);
 
       // player
@@ -177,6 +177,13 @@ export function createThreeRenderer(canvas, world, {quality = 'high'} = {}) {
       player.yaw += Math.atan2(Math.sin(p.heading - player.yaw), Math.cos(p.heading - player.yaw)) * Math.min(1, dt * 12);
       player.group.rotation.y = player.yaw;
       animateHumanoid(player, {phase: p.walkPhase, moving: p.moving, time, pose: 'stand'});
+      // COS-110A: when the third-person camera is pulled in close (wall behind the player), fade the avatar so it
+      // never fills the screen. Opacity follows eye distance to the avatar's head.
+      const near = Math.hypot(eye[0] - p.x, eye[1] - 1.5, eye[2] - p.z), fade = Math.min(1, Math.max(.18, (near - .7) / 1.3));
+      if (fade !== player.fade) {
+        player.fade = fade;
+        player.group.traverse(o => { if (o.isMesh && o.material?.isMeshStandardMaterial) { const was = o.material.transparent; o.material.transparent = fade < 1; o.material.opacity = fade; o.material.depthWrite = fade >= 1; if (was !== o.material.transparent) o.material.needsUpdate = true; } }); // the floor shadow (MeshBasic) is untouched
+      }
 
       // NPCs follow REAL status only (presence.js); they turn to face the CEO when the CEO is right there.
       const poses = {};

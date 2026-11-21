@@ -1,5 +1,5 @@
 // Keyboard and on-screen movement buttons → a shared Set of pressed keys.
-const MOVE_KEYS = ['w', 'a', 's', 'd', 'ArrowUp', 'ArrowLeft', 'ArrowDown', 'ArrowRight'];
+const MOVE_KEYS = ['w', 'a', 's', 'd', 'ArrowUp', 'ArrowLeft', 'ArrowDown', 'ArrowRight', 'Shift']; // Shift = sprint (COS-110A)
 // Letter keys use the physical key (e.code), so WASD / E / C / V / R / T / M also work while an
 // Arabic (or any non-Latin) keyboard layout is active. Other keys keep e.key (arrows, Escape).
 const norm = e => (/^Key[A-Z]$/.test(e.code || '') ? e.code.slice(3).toLowerCase() : e.key.length === 1 ? e.key.toLowerCase() : e.key);

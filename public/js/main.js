@@ -9,6 +9,7 @@ import {createCanvasRenderer} from './world/renderer-canvas.js';
 import {presenceFor} from './world/presence.js';
 import {createPlayer, stepPlayer, placePlayer} from './game/player-controller.js';
 import {createCamera} from './game/camera-controller.js';
+import {stepThirdPerson} from './core/third-person.js';
 import {createInput} from './game/input.js';
 import {api, staticDemo} from './net/api-client.js';
 import {ensureSignedIn} from './ui/auth.js';
@@ -73,9 +74,26 @@ async function boot() {
       $('orbitBtn').setAttribute('aria-pressed', String(on)); $('orbitIcon').textContent = on ? '✓' : '⟲';
       toast(on ? L('الكاميرا الحرة: اسحب للتدوير، العجلة أو قرصة الإصبعين للتقريب · C للإيقاف', 'Free camera: drag to orbit, wheel/pinch to zoom · C to exit') : L('عادت الكاميرا للمتابعة التلقائية', 'Camera follows again'));
     },
-    onMode: updateCamButton,
+    onMode: m => { updateCamButton(m); updateTp(); },
+    onLock: on => { inputKeys?.clear(); updateTp(); if (!on && camera.mode === 'third') toast(L('تحرر المؤشر · انقر على المشهد للتحكم مجددًا', 'Mouse released · click the scene to look around again')); },
   });
-  updateCamButton(camera.mode);
+  // ---- COS-110A third-person mouse control (opt-in, F or the button; the mouse is captured only on a click)
+  function updateTp() {
+    const on = camera.mode === 'third';
+    $('tpBtn').setAttribute('aria-pressed', String(on));
+    $('tpHint').hidden = !on || camera.locked;
+    $('tpHintText').textContent = L('انقر على المشهد للتحكم بالماوس · WASD للحركة · Shift للركض · Esc لتحرير المؤشر · F للخروج', 'Click the scene to look with the mouse · WASD move · Shift sprint · Esc releases the mouse · F to exit');
+  }
+  const toggleThird = () => {
+    if (renderer.kind !== 'three') return toast(L('التحكم بالماوس يتطلب العرض ثلاثي الأبعاد (WebGL)', 'Mouse control needs the 3D (WebGL) renderer'));
+    if (camera.mode === 'third') { camera.setMode('follow'); toast(L('عدت للعرض القريب', 'Back to the close view')); }
+    else { camera.setMode('third'); toast(L('تحكم بالماوس: انقر على المشهد للبدء', 'Mouse control: click the scene to start')); }
+  };
+  { const ls = camera.lookSettings; $('tpSens').value = String(ls.sensitivity); $('tpInvert').checked = ls.invertY; }
+  $('tpSens').addEventListener('input', e => camera.setLookSettings({sensitivity: Number(e.target.value)}));
+  $('tpInvert').addEventListener('change', e => camera.setLookSettings({invertY: e.target.checked}));
+  $('tpBtn').addEventListener('click', toggleThird);
+  updateCamButton(camera.mode); updateTp();
   const toggleView = () => { const m = camera.toggleMode(); toast(m === 'overview' ? L('عرض علوي للطابق · V للعودة للمتابعة القريبة', 'Overview of the floor · V to return to the close view') : L('متابعة قريبة · V للعرض العلوي', 'Close follow view · V for the overview')); };
   const recenter = () => { camera.reset(); toast(L('أُعيد ضبط الكاميرا خلفك', 'Camera re-centred behind you')); };
 
@@ -85,6 +103,7 @@ async function boot() {
     if (k === 'e' && nearby) panels.open(nearby);
     else if (k === 'c') camera.setOrbit(!camera.orbit);
     else if (k === 'v') toggleView();
+    else if (k === 'f') toggleThird();
     else if (k === 'r') recenter();
     else if (k === 't') hud.toggle('team');
     else if (k === 'm') hud.toggle('map');
@@ -155,7 +174,9 @@ async function boot() {
   let last = performance.now(), lastHud = 0;
   function frame(stamp) {
     const dt = Math.min(.05, (stamp - last) / 1000); last = stamp;
-    if (panels.isOpen()) { inputKeys.clear(); player.moving = false; } else stepPlayer(player, inputKeys, camera.view.yaw, dt);
+    if (panels.isOpen()) { inputKeys.clear(); player.moving = false; camera.release(); } // a panel frees the mouse and stops movement
+    else if (camera.mode === 'third') stepThirdPerson(player, Core.inputVector(inputKeys), camera.view.yaw, dt, {sprint: inputKeys.has('Shift')});
+    else stepPlayer(player, inputKeys, camera.view.yaw, dt);
     camera.update(player, dt);
     nearby = Core.nearestInteractable(player, offices, INTERACT_RANGE)?.key ?? null;
     const nowRoom = roomAt(player.x, player.z)?.id ?? null;
@@ -163,7 +184,7 @@ async function boot() {
     const dynamicPrimitives = renderer.kind === 'three' ? [] : [
       ...world.npcs.flatMap(n => [{shape: 'cyl', x: n.x, y: .02, z: n.z, r: .62, h: .02, color: STATUS_COLORS[presenceFor(npcStates[n.id]?.status).status]}, ...avatarPrimitives(n.x, n.z, n.coat, n.accent)]),
       ...avatarPrimitives(player.x, player.z, '#1d5163', '#344753', player.walkPhase, player.moving)];
-    lastOut = renderer.render({eye: [camera.eye.x, camera.eye.y, camera.eye.z], target: [player.x, 0, player.z], player, npcStates, nearby, time: stamp / 1000, dt, dynamicPrimitives});
+    lastOut = renderer.render({eye: [camera.eye.x, camera.eye.y, camera.eye.z], target: [camera.look.x, camera.look.y, camera.look.z], player, npcStates, nearby, time: stamp / 1000, dt, dynamicPrimitives});
     if (stamp - lastHud > 100) { updateHud(lastOut); lastHud = stamp; }
     requestAnimationFrame(frame);
   }
@@ -190,7 +211,7 @@ async function boot() {
   // Test/debug hook (read-only snapshots + teleport/camera helpers) used by browser tests and evidence capture.
   window.__atlas = {
     player, get nearby() { return nearby; }, get room() { return room; }, renderer: renderer.kind, travel, place: (x, z) => placePlayer(player, x, z), store, panels, hud,
-    camera: {get mode() { return camera.mode; }, get orbit() { return camera.orbit; }, get view() { return {...camera.view}; }, get eye() { return {...camera.eye}; }, get target() { return camera.target; }, setMode: camera.setMode, toggleMode: camera.toggleMode, reset: camera.reset},
+    camera: {get mode() { return camera.mode; }, get locked() { return camera.locked; }, get obstructed() { return camera.obstructed; }, get look() { return {...camera.look}; }, lookBy: camera.lookBy, get orbit() { return camera.orbit; }, get view() { return {...camera.view}; }, get eye() { return {...camera.eye}; }, get target() { return camera.target; }, setMode: camera.setMode, toggleMode: camera.toggleMode, reset: camera.reset},
     /** Poses the renderer applied on the last frame (derived from the store, see presence.js). */
     presence: () => ({...(lastOut?.poses || {})}),
     /** Player's on-screen height in CSS px from the renderer's own projection. */
