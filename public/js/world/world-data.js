@@ -188,6 +188,7 @@ export function buildWorld() {
   // COS-109 lounge corner: two armchairs facing each other across a low table
   chair(13.2, -13.1, 0); chair(13.2, -10.5, Math.PI); cylP(13.2, .38, -11.8, .34, .06, COLORS.wood, 'wood'); cylP(13.2, .18, -11.8, .05, .34, COLORS.steel, 'metal');
   solid('pm-lounge-chair-n', 13.2, -13.1, .8, .8); solid('pm-lounge-chair-s', 13.2, -10.5, .8, .8); solid('pm-lounge-table', 13.2, -11.8, .72, .72);
+  solid('pm-plant-ne', 21.85, -15.85, .7, .7); cylP(21.85, .32, -15.85, .32, .64, '#8d6f56'); sphP(21.85, 1.3, -15.85, .5, COLORS.plant, 'plant');
   artZone = null;
 
   // ---- Developer workstations (open plan, low partitions)

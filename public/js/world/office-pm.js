@@ -140,6 +140,10 @@ export function buildPmOffice(THREE, {envMap = null} = {}) {
     walnut: std('walnut', {color: tex.walnut ? '#ffffff' : PAL.walnut, map: tex.walnut, roughness: .45, envMapIntensity: .55}),
     oak: std('oak', {color: tex.oak ? '#ffffff' : PAL.oak, map: tex.oak, roughness: .55}),
     cream: std('cream', {color: PAL.cream, roughness: .9, envMapIntensity: .25}),
+    teal: std('teal', {color: PAL.teal, roughness: .85}),
+    // concepts 01/04: warm LED cove strips and mint accents. Emissive only: no per-pixel light cost.
+    led: mat('led', () => new THREE.MeshStandardMaterial({color: '#7a4a18', emissive: '#ff9a3c', emissiveIntensity: 1.5, roughness: .6})),
+    ledMint: mat('ledMint', () => new THREE.MeshStandardMaterial({color: '#1e5557', emissive: '#3fcfa9', emissiveIntensity: 1.3, roughness: .6})),
     trim: std('trim', {color: '#3a2a1e', roughness: .5}),
     metal: std('metal', {color: PAL.metal, roughness: .32, metalness: .75}),
     brass: std('brass', {color: PAL.brass, roughness: .28, metalness: .9, envMapIntensity: 1}),
@@ -219,7 +223,7 @@ export function buildPmOffice(THREE, {envMap = null} = {}) {
   const ex = x1 - .02;
   add(staticRoot, rbox(.04, .92, D, .01), M.oak, ex, .46, cz, {cast: false});
   add(staticRoot, rbox(.07, .05, D, .015), M.trim, ex - .01, .94, cz);
-  add(staticRoot, box(.03, 1.81, D), M.cream, ex, 1.875, cz, {cast: false});
+  add(staticRoot, box(.03, 1.81, D), M.teal, ex, 1.875, cz, {cast: false}); // teal accent wall (concepts 01/04)
   // glass partitions (west and south): slim mullions, top rail, and an oak skin on the lower wall
   for (const zz of [-15.2, -13.2, -11.2, -9.2]) add(staticRoot, box(.05, 1.2, .05), M.glassFrame, 12.1, 1.84, zz);
   add(staticRoot, box(.06, .05, 9), M.glassFrame, 12.1, 2.44, -11.55);
@@ -327,8 +331,8 @@ export function buildPmOffice(THREE, {envMap = null} = {}) {
   add(staticRoot, cyl(.2, .2, .04, 32), M.trim, ex - .04, 2.25, -9.2, {rz: Math.PI / 2}); add(staticRoot, cyl(.18, .18, .045, 32), M.ceramic, ex - .05, 2.25, -9.2, {rz: Math.PI / 2});
 
   // ---- plant (collider pm-plant at 13, -15) ------------------------------------------------------------------
-  {
-    const g = piece(13, -15);
+  const leafy = (x, z, id, scale = 1) => {
+    const g = piece(x, z); g.scale.setScalar(scale);
     const pot = new THREE.LatheGeometry([[0, 0], [.22, 0], [.27, .05], [.3, .5], [.27, .52], [0, .52]].map(([a, b]) => new THREE.Vector2(a, b)), 24);
     add(g, pot, M.ceramic, 0, 0, 0); add(g, cyl(.27, .27, .02, 24), M.trim, 0, .5, 0);
     add(g, cyl(.025, .035, .9, 8), M.walnut, 0, .9, 0);
@@ -337,8 +341,10 @@ export function buildPmOffice(THREE, {envMap = null} = {}) {
       const a = i * 2.4, y = .75 + (i % 7) * .14, r = .12 + (i % 3) * .08;
       add(g, leafGeo, i % 2 ? M.leaf : M.leaf2, Math.sin(a) * r, y, Math.cos(a) * r, {ry: a, rz: .5 + (i % 4) * .15, rx: .2});
     }
-    footprint('pm-plant', g);
-  }
+    footprint(id, g);
+  };
+  leafy(13, -15, 'pm-plant');
+  leafy(21.85, -15.85, 'pm-plant-ne', 1.25); // tall corner plant (concepts show generous greenery)
 
   // ---- arc floor lamp (collider pm-lamp at 13.4, -8.4) ---------------------------------------------------------
   {
@@ -349,6 +355,18 @@ export function buildPmOffice(THREE, {envMap = null} = {}) {
     add(g, new THREE.ConeGeometry(.2, .2, 24, 1, true), M.lampGlow, -.35, 1.72, .25);
     footprint('pm-lamp', g);
   }
+
+  // ---- LED cove strips (concepts 01/04): wall tops, slat wall frame, partition rails, desk + credenza underglow --------
+  const strip = (w, d, x, y, z, m = M.led) => add(staticRoot, box(w, .025, d), m, x, y, z, {cast: false, receive: false});
+  strip(W, .04, cx, 2.77, nz + .03); strip(.04, D, ex - .03, 2.77, cz);
+  strip(3.5, .03, 17, .95, nz + .06); strip(3.5, .03, 17, 2.79, nz + .06);
+  for (const [xa, xb] of [[12, 16.1], [17.9, 22]]) strip(xb - xa, .03, (xa + xb) / 2, 2.47, -7.1, M.ledMint);
+  strip(.03, 9, 12.1, 2.47, -11.55, M.ledMint);
+  strip(1.9, .03, 17.22, .2, -11.04);           // desk modesty-panel underglow (visitor side)
+  strip(.03, 2.3, 21.03, .05, -12.8);           // credenza toe-kick glow
+  // ring pendant light over the desk
+  add(staticRoot, new THREE.TorusGeometry(.6, .035, 10, 48), M.led, 17, 2.55, -11.6, {rx: Math.PI / 2, cast: false});
+  for (const a of [0, 2.1, 4.2]) add(staticRoot, cyl(.004, .004, .3, 4), M.metal, 17 + Math.cos(a) * .6, 2.72, -11.6 + Math.sin(a) * .6, {cast: false});
 
   // ---- rug under the visitor area -------------------------------------------------------------------------
   add(staticRoot, rbox(3.8, .012, 2.6, .004), M.rug, 17, .016, -10.05, {cast: false});
