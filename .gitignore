@@ -16,3 +16,4 @@ __pycache__/
 dist-e2e/
 test-results/
 playwright-report/
+data/
