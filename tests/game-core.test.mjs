@@ -110,8 +110,9 @@ test('input vector normalises diagonals and supports arrows', () => {
   assert.deepEqual(core.inputVector(new Set(['w', 's'])), {x: 0, z: 0});
 });
 
-test('default camera reproduces the original follow offset (11, 16, 17)', () => {
-  const o = core.cameraOffset(DEFAULT_CAMERA);
+test('legacy camera (pre-COS-108 default) reproduces the original follow offset (11, 16, 17)', () => {
+  // COS-108-A changed the default framing on purpose; the old one is kept as LEGACY_CAMERA for measurements.
+  const o = core.cameraOffset(core.LEGACY_CAMERA);
   assert.ok(near(o.x, 11, 1e-9) && near(o.y, 16, 1e-9) && near(o.z, 17, 1e-9), JSON.stringify(o));
 });
 
