@@ -14,7 +14,9 @@ Node HTTP server (server.js, localhost:3099)
 
 The separate `ATLAS-PLAYABLE-DEMO.html` is an offline simulation: it replaces API calls with localStorage and deterministic scripted answers. **It is NOT live AI.**
 
-## B. Target architecture AFTER game foundation acceptance
+## B. Original target (superseded)
+
+> **Superseded by [ADR-001](adr/ADR-001-production-architecture.md)** (COS-103): the MVP keeps the Node server and moves the renderer to vanilla Three.js; Next.js/R3F was evaluated and rejected for the MVP. Section C describes the current architecture.
 
 ```
 Next.js (React 19 + TypeScript) UI
@@ -52,3 +54,18 @@ The existing single-file game is useful for immediate usability testing, but doe
 - R3F v9 / React 19: https://r3f.docs.pmnd.rs/getting-started/introduction
 - Supabase Auth: https://supabase.com/docs/guides/auth/quickstarts/nextjs
 - Claude Code CLAUDE.md: https://docs.anthropic.com/en/docs/claude-code/memory
+
+
+## C. Current architecture (ADR-001)
+
+```
+Browser — public/js (ES modules, no bundler)
+  world-data (geometry + colliders) → renderer (Three.js, Canvas2D fallback)
+  player / camera / input / interactions (line of sight) / voice / CEO workspace UI
+      | fetch /api/* (session cookie, Origin-checked)       | static build: in-browser DEMO backend
+Node HTTP server — server/
+  auth (scrypt, sessions) · rate limit · validation · audit
+  repository → node:sqlite (local)  |  Supabase Postgres + RLS (hosted, schema in supabase/)
+  agents: provider adapters (Groq, DeepSeek, DEMO) · orchestrator (limits, budget, kill switch)
+  tools: sandbox workspace (path allowlist) · git (fixed argv) · test runner (timeout) · GitHub PR (opt-in)
+```
