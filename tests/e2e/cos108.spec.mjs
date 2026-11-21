@@ -8,6 +8,9 @@ const IGNORED = /GPU stall|GL Driver Message|favicon/i;
 const ready = page => page.waitForFunction(() => window.__atlas?.ready && window.__atlas.store.data, null, {timeout: 20_000});
 /** Poses the store's REAL statuses should produce, computed with the app's own presence module. */
 const expectedPoses = page => page.evaluate(async () => { const {presenceFor} = await import('/js/world/presence.js'); return Object.fromEntries(window.__atlas.store.data.employees.filter(e => e.kind === 'ai').map(e => [e.roleKey, presenceFor(e.status).pose])); });
+/** Camera framing exists only in the 3D renderer. Without WebGL (e.g. headless Firefox on the Linux CI runner)
+ *  the app correctly falls back to Canvas2D, whose fixed view is covered by the fallback test below. */
+const needs3D = async page => test.skip(await page.evaluate(() => window.__atlas.renderer) !== 'three', 'no WebGL here: Canvas2D fallback has a fixed view (see fallback test)');
 const settle = page => page.waitForTimeout(1200); // camera easing
 function trackErrors(page) {
   const errors = [];
@@ -20,7 +23,7 @@ test.describe('COS-108 camera', () => {
   test.use({viewport: {width: 1280, height: 720}});
 
   test('close follow view by default; V toggles the overview; the choice survives reload', async ({page}) => {
-    await page.goto('/'); await ready(page);
+    await page.goto('/'); await ready(page); await needs3D(page);
     expect(await page.evaluate(() => window.__atlas.camera.mode)).toBe('follow');
     await expect(page.locator('#camModeBtn')).toHaveAttribute('aria-pressed', 'false');
     await settle(page);
@@ -40,7 +43,7 @@ test.describe('COS-108 camera', () => {
   });
 
   test('the avatar stays centred and on screen; R resets zoom and orbit', async ({page}) => {
-    await page.goto('/'); await ready(page); await settle(page);
+    await page.goto('/'); await ready(page); await needs3D(page); await settle(page);
     const m = await page.evaluate(() => window.__atlas.measure());
     expect(Math.abs(m.feet[0] - m.width / 2)).toBeLessThan(m.width * .1);
     expect(m.head[1]).toBeGreaterThan(90); // below the top bar
