@@ -5,16 +5,16 @@
 | ID | Title | State | Branch / PR |
 |---|---|---|---|
 | COS-101 | Gameplay foundation | ✅ merged (PR #2) | `main` |
-| COS-102 | Modular frontend, shared geometry/collision, LOS, pinch zoom, smoke tests | 🔍 awaiting CEO review | PR #3 · `cos-102-frontend-modules` |
-| COS-103 | ADR-001 production architecture | 🔍 awaiting CEO review | PR #4 · `cos-103-architecture-adr` (stacked on #3) |
-| COS-104 | Persistent backend: auth, authorization, validation, rate limits, migrations, audit | 🔍 awaiting CEO review | PR #5 · `cos-104-106-company-os` (stacked on #4) |
-| COS-105 | Independent AI employees (provider-agnostic, budgets, retries, failure states) | 🔍 awaiting CEO review | PR #5 |
-| COS-106 | Developer + QA in a sandbox repo, CEO approvals, tool allowlists | 🔍 awaiting CEO review | PR #5 |
-| COS-107 | Immersive 3D office, live status, voice, CEO workspace | 🔍 awaiting CEO review | PR #6 · `cos-107-immersive-office` (stacked on #5) |
+| COS-102 | Modular frontend, shared geometry/collision, LOS, pinch zoom, smoke tests | ✅ merged | PR #3 · `d88658b` |
+| COS-103 | ADR-001 production architecture | ✅ merged | PR #4 · `bd7af5b` |
+| COS-104 | Persistent backend: auth, authorization, validation, rate limits, migrations, audit | ✅ merged | PR #5 · `502c1dd` |
+| COS-105 | Independent AI employees (provider-agnostic, budgets, retries, failure states) | ✅ merged | PR #5 |
+| COS-106 | Developer + QA in a sandbox repo, CEO approvals, tool allowlists | ✅ merged | PR #5 |
+| COS-107 | Immersive 3D office, live status, voice, CEO workspace | ✅ merged | PR #6 · `96bde23` (into #5's branch, landed with #5) |
 
-The PRs are **stacked**: each branch builds on the previous one. Review and merge them in order. Nothing is
-merged without CEO approval. **PR #5 and PR #6 must be merged together.** On #5 alone, the browser UI still targets
-the old API, and its e2e CI job fails.
+All four PRs were merged into `main` on 2026-11-21 with CEO approval, in order, using merge commits.
+PR #6 was merged into PR #5's branch first, so `main` never held the new backend without its UI. CI passed
+on the combined PR #5 and on `main` after the merge.
 
 ## What works (verified by automated tests — see [TEST-RESULTS.md](TEST-RESULTS.md))
 
@@ -37,9 +37,10 @@ the old API, and its e2e CI job fails.
 
 ## Pending CEO approvals
 
-1. Review and merge the stacked PRs in order (102 → 103 → 104-106 → 107).
-2. Decide whether to enable GitHub Pages for the static demo. The demo is public and labelled as a simulation.
-3. Optional: provide Groq/DeepSeek API keys locally (`.env`) to switch employees to LIVE (paid usage).
-4. Optional: create a dedicated sandbox GitHub repo and a fine-grained token for real PRs.
-5. Optional: a Supabase project and staging hosting. Both need approval and hosting authorization.
-6. Keep the main repo public, or make it private. Visibility is your decision; it was not changed.
+1. Decide whether to enable GitHub Pages for the static demo. The demo is public and labelled as a simulation.
+   Until Pages is enabled (or the workflow is disabled), the "Publish static game demo" workflow fails on every
+   push to `main` at `configure-pages` ("Get Pages site failed"). Nothing is published.
+2. Optional: provide Groq/DeepSeek API keys locally (`.env`) to switch employees to LIVE (paid usage).
+3. Optional: create a dedicated sandbox GitHub repo and a fine-grained token for real PRs.
+4. Optional: a Supabase project and staging hosting. Both need approval and hosting authorization.
+5. Keep the main repo public, or make it private. Visibility is your decision; it was not changed.

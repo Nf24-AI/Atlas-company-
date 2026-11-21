@@ -3,11 +3,9 @@
 For whoever (human or AI) continues ATLAS. Read [PROJECT-HUB.md](PROJECT-HUB.md) first.
 
 ## State on 2026-11-21
-- `main` contains COS-101.
-- COS-102 → COS-107 are on **stacked branches** with PRs awaiting CEO review: 102 → 103 → 104-106 → 107.
-  Merge them in order. Each PR's diff is relative to the previous branch.
-- All tests pass locally on the final branch and in CI on PRs #3, #4 and #6. CI on PR #5 fails in the browser
-  tests, because its UI predates the new API. Merge #5 together with #6 (see [TEST-RESULTS.md](TEST-RESULTS.md)).
+- `main` contains COS-101 → COS-107. PRs #3, #4, #5 and #6 were merged on 2026-11-21 (`main` at `502c1dd`).
+- CI passes on `main`. The Pages workflow fails because GitHub Pages is not enabled (a pending CEO decision).
+- The old feature branches (`cos-102-…` to `cos-107-…`) still exist on the remote and can be deleted when no longer needed.
 - No production, staging or Pages deployment exists. There are no API keys in the environment.
 
 ## How the code fits together
