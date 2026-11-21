@@ -1,5 +1,5 @@
 # COS-108 — Immersive Office Experience
-**Status:** Ready for implementation (brief/spec only; no gameplay code changed by this setup commit)  
+**Status:** Done. Merged in PR #9 on 2026-11-21. Evidence: [cos-108/REPORT.md](cos-108/REPORT.md). (Originally: brief/spec only.)  
 **Repository:** https://github.com/Nf24-AI/Atlas-company-  
 **Issue:** https://github.com/Nf24-AI/Atlas-company-/issues/8  
 **Branch:** `cos-108-immersive-office-experience`  

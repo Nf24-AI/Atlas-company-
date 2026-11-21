@@ -3,11 +3,11 @@
 For whoever (human or AI) continues ATLAS. Read [PROJECT-HUB.md](PROJECT-HUB.md) first.
 
 ## State on 2026-11-21
-- `main` contains COS-101 → COS-107. PRs #3, #4, #5 and #6 were merged on 2026-11-21 (`main` at `502c1dd`).
+- `main` contains COS-101 → COS-108. PRs #3, #4, #5, #6 and #9 were merged on 2026-11-21 (`main` at `05e6408`).
+  PR #7 was closed (its commit is part of #9).
 - CI passes on `main`. The Pages workflow fails because GitHub Pages is not enabled (a pending CEO decision).
-- COS-108 (issue #8) is on `cos-108-immersive-office-experience` with a PR awaiting CEO review. See
-  [cos-108/REPORT.md](cos-108/REPORT.md).
-- The old feature branches (`cos-102-…` to `cos-107-…`) still exist on the remote and can be deleted when no longer needed.
+- COS-108 details and evidence: [cos-108/REPORT.md](cos-108/REPORT.md).
+- The old feature branches (`cos-102-…` to `cos-108-…`, `docs-post-merge-status`) still exist on the remote and can be deleted when no longer needed.
 - No production, staging or Pages deployment exists. There are no API keys in the environment.
 
 ## How the code fits together

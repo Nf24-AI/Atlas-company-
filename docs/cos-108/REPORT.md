@@ -1,6 +1,6 @@
 # COS-108: Immersive office experience (report)
 
-**Issue:** #8 · **Branch:** `cos-108-immersive-office-experience` · **Date:** 2026-11-21 · **Status:** PR open, awaiting CEO review (not merged, not deployed)
+**Issue:** #8 · **Branch:** `cos-108-immersive-office-experience` · **Date:** 2026-11-21 · **Status:** merged into `main` with CEO approval (PR #9, `05e6408`); not deployed
 
 ## Problem
 The CEO screenshots showed four things:

@@ -1,6 +1,6 @@
 # Test results
 
-## COS-108 branch (`cos-108-immersive-office-experience`), 2026-11-21
+## COS-108 (merged in PR #9), 2026-11-21
 
 | Command | Baseline (`main`) | After COS-108 |
 |---|---|---|

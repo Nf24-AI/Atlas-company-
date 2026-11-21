@@ -1,10 +1,8 @@
 # Roadmap
 
-## Done — MVP (COS-101 → COS-107, merged)
-See [STATUS.md](STATUS.md).
-
-## In review
-- **COS-108 immersive office experience**: camera, HUD, presence, environment. See [cos-108/REPORT.md](cos-108/REPORT.md).
+## Done (merged)
+- **MVP**: COS-101 → COS-107. See [STATUS.md](STATUS.md).
+- **COS-108 immersive office experience**: camera, HUD, presence, environment (PR #9). See [cos-108/REPORT.md](cos-108/REPORT.md).
 
 ## Next (requires CEO decisions)
 1. **LIVE trial**: add Groq + DeepSeek keys locally, run one project with a $1 monthly cap, review output quality

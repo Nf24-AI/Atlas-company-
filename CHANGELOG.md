@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.4.0] — unreleased (COS-108, PR pending CEO review)
+## [0.4.0] — 2026-11-21 (COS-108, merged into `main` via PR #9; not tagged or deployed)
 
 ### COS-108 — Immersive office experience
 - **Camera (A):** close follow view by default (avatar 60 → 137 px tall at 1280×720), optional high overview
