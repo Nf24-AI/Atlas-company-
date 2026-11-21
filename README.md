@@ -4,7 +4,7 @@ An **Arabic-first 3D browser office** where a human CEO walks between rooms and 
 The staff are a Project Manager, a Technical Director, a Software Developer and a QA Engineer. They plan
 projects, debate decisions, change code in an isolated sandbox repository, test it, and ask the CEO for approval.
 
-> **Status:** MVP (COS-101 → COS-107) merged into `main`. It runs locally. LIVE AI needs your own API keys;
+> **Status:** MVP (COS-101 → COS-107) and COS-108 (immersive office) merged into `main`. It runs locally. LIVE AI needs your own API keys;
 > without them every employee runs in clearly labelled **DEMO** mode at $0.
 > Start at the **[Project Hub](docs/PROJECT-HUB.md)**.
 
