@@ -15,7 +15,7 @@ export function stepPlayer(player, keys, yaw, dt, speed = Core.WALK_SPEED) {
   const moved = Math.hypot(next.x - player.x, next.z - player.z);
   player.moving = moved > 1e-4;
   player.x = next.x; player.z = next.z;
-  player.heading = Math.atan2(dir.x, -dir.z);
+  player.heading = Math.atan2(dir.x, dir.z); // yaw convention: 0 faces +z (Three.js)
   if (player.moving) player.walkPhase += moved * 1.75; // animation follows real distance, not key state
   return player.moving;
 }

@@ -1,5 +1,7 @@
 # Work orders for Claude — do them in order
 
+> Status (2026-11-21): COS-101 merged; COS-102 → COS-107 implemented on stacked branches awaiting CEO review. See [STATUS.md](STATUS.md).
+
 ## COS-101 — Gameplay foundation hardening (START HERE)
 **Owner:** Claude. **Type:** Game engineering. **Scope:** improve existing local prototype, not a rewrite.
 

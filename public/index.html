@@ -4,62 +4,48 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0d1b25">
-  <meta name="description" content="Company OS — شركة افتراضية ثلاثية الأبعاد بإيجنتين مستقلين">
+  <meta name="description" content="ATLAS Company OS — شركة افتراضية ثلاثية الأبعاد يديرها رئيس تنفيذي بشري مع موظفين بالذكاء الاصطناعي">
   <title>ATLAS — Company OS</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <main class="game-shell">
-    <canvas id="world" aria-label="عالم الشركة ثلاثي الأبعاد"></canvas>
+    <canvas id="world" aria-label="مقر الشركة ثلاثي الأبعاد"></canvas>
     <div id="labels" class="labels" aria-hidden="true"></div>
+    <div id="loading" class="loading" role="status"><div class="brand-symbol">A<span>·</span></div><p>جارٍ تحميل المقر…</p></div>
 
     <header class="topbar frosted">
-      <div class="brand"><div class="brand-symbol">A<span>·</span></div><div><b>ATLAS</b><small>COMPANY OS / EARLY ACCESS</small></div></div>
-      <div class="top-links"><span class="live-dot"></span><span id="timeText">مقر الشركة الرئيسي</span><span class="separator">|</span><span>المبنى 01 / الطابق 01</span></div>
-      <div class="top-actions"><button id="orbitBtn" class="btn ghost small" type="button" aria-pressed="false" aria-label="كاميرا حرة" title="تدوير الكاميرا بالسحب وتقريبها بعجلة الفأرة (C)"><span id="orbitIcon">⟲</span> <span class="btn-label">كاميرا حرة</span></button><button id="viewBtn" class="btn ghost small" type="button" aria-label="إعادة تمركز الكاميرا" title="إعادة تمركز الكاميرا">↻ <span class="btn-label">إعادة تمركز الكاميرا</span></button></div>
+      <div class="brand"><div class="brand-symbol">A<span>·</span></div><div><b>ATLAS</b><small>COMPANY OS</small></div></div>
+      <div class="top-links"><span class="live-dot"></span><span id="companyName">مقر الشركة</span><span class="separator">|</span><span id="modeBadge" class="mode-pill">…</span><span id="haltBadge" class="mode-pill danger" hidden>STOPPED</span></div>
+      <div class="top-actions">
+        <button id="langBtn" class="btn ghost small" type="button" aria-label="Language">EN</button>
+        <button id="orbitBtn" class="btn ghost small" type="button" aria-pressed="false" title="C"><span id="orbitIcon">⟲</span> <span class="btn-label" data-i18n="orbit">كاميرا حرة</span></button>
+        <button id="viewBtn" class="btn ghost small" type="button" title="R">↻ <span class="btn-label" data-i18n="recenter">إعادة التمركز</span></button>
+        <button id="logoutBtn" class="btn ghost small" type="button" aria-label="تسجيل الخروج">⎋</button>
+      </div>
     </header>
 
-    <aside class="sidebar frosted">
+    <aside class="sidebar frosted" aria-label="الموظفون">
       <div class="eyebrow">YOUR COMPANY</div>
-      <h1>مقر العمليات</h1>
-      <p>تجوّل بحرية، اقترب من الموظف، وابدأ اجتماعك بالصوت.</p>
-      <div class="progress-label"><span>الموظفون النشطون</span><strong>02 / 02</strong></div>
-      <div class="staff-card" data-go="manager"><div class="staff-avatar green">M</div><div class="staff-copy"><b>Project Manager</b><small>مدير المشاريع التقنية</small><span class="staff-online">● متاح للاجتماع</span></div><span class="chevron">↗</span></div>
-      <div class="staff-card" data-go="director"><div class="staff-avatar gold">D</div><div class="staff-copy"><b>Technical Director</b><small>المدير التقني</small><span class="staff-online">● متاح للمراجعة</span></div><span class="chevron">↗</span></div>
-      <button class="room-link" data-go="board" type="button">▦ <span>مركز العمليات</span><span>↗</span></button>
-      <div class="sidebar-footer"><div class="meta-line"><span>حالة النماذج</span><span id="modeBadge" class="mode-pill">جارٍ التحقق</span></div><p id="modeHelp">يبدأ العرض التجريبي عند عدم وجود مفاتيح API.</p></div>
+      <h1 id="sideTitle">فريق الشركة</h1>
+      <div id="staffList"></div>
+      <div class="sidebar-footer"><p id="modeHelp"></p></div>
     </aside>
 
-    <div id="sceneTitle" class="scene-title"><div class="eyebrow">WELCOME TO YOUR OFFICE</div><h2>تجربة شركة مختلفة.</h2><p>أنت المؤسس. ومديراك ينتظران قرارك.</p></div>
+    <div class="mini-map frosted"><div class="map-title">FLOOR MAP <span>01</span></div><canvas id="minimap" width="200" height="150" aria-label="خريطة الطابق — انقر على غرفة للانتقال"></canvas></div>
 
-    <div class="mini-map frosted"><div class="map-title">FLOOR MAP <span>01</span></div><div class="map-art"><div class="map-room mgr" data-go="manager">M</div><div class="map-room dir" data-go="director">D</div><div class="map-room ops" data-go="board">OPS</div><div id="mapPlayer" class="map-player"></div></div><small>اضغط على غرفة للانتقال</small></div>
+    <div class="hud-bottom frosted"><div class="control-help"><span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span><span data-i18n="move">للحركة</span><span class="dot-divider">·</span><span class="key">E</span><span data-i18n="interact">للتفاعل</span></div><div class="target-status"><span id="nearbyText"></span><button id="interactBtn" class="btn primary" type="button" disabled></button></div></div>
 
-    <div class="hud-bottom frosted"><div class="control-help"><span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span><span>للحركة</span><span class="dot-divider">·</span><span class="key">E</span><span>للتفاعل</span></div><div class="target-status"><span id="nearbyText">اكتشف مقر شركتك</span><button id="interactBtn" class="btn primary" type="button" disabled>اقترب من أحد المكاتب</button></div></div>
-
-    <div class="mobile-controls" aria-label="التحكم بالحركة"><button type="button" data-move="w">▲</button><div><button type="button" data-move="a">◀</button><button type="button" data-move="s">▼</button><button type="button" data-move="d">▶</button></div></div>
+    <div class="mobile-controls" aria-label="التحكم بالحركة"><button type="button" data-move="w" aria-label="أمام">▲</button><div><button type="button" data-move="a" aria-label="يسار">◀</button><button type="button" data-move="s" aria-label="خلف">▼</button><button type="button" data-move="d" aria-label="يمين">▶</button></div></div>
+    <button id="mobileInteract" class="mobile-interact" type="button" hidden>E</button>
 
     <div id="overlay" class="overlay" hidden>
       <section class="work-panel" role="dialog" aria-modal="true" aria-labelledby="panelTitle">
-        <div class="panel-head"><div class="eyebrow" id="panelKicker">EMPLOYEE OFFICE</div><h2 id="panelTitle">مكتب الموظف</h2><p id="panelSubtitle"></p><button id="closePanel" class="close" type="button" aria-label="إغلاق">×</button></div>
-        <div id="officeView" class="office-body">
-          <div class="employee-hero"><div id="employeeLetter" class="employee-letter">M</div><div><strong id="employeeName">Project Manager</strong><small id="employeeDesc">مدير المشاريع التقنية</small><span class="presence">● داخل المكتب</span></div></div>
-          <div class="office-stats"><div><small>المشاريع</small><strong id="statsProjects">01</strong></div><div><small>المهام النشطة</small><strong id="statsTasks">00</strong></div><div><small>قرارات بانتظارك</small><strong id="statsDecisions">00</strong></div></div>
-          <div class="section-header"><h3>اجتماع مباشر</h3><span class="status-light" id="speechSupport">VOICE FIRST</span></div>
-          <div class="meeting-card"><div class="voice-stage"><div id="voiceOrb" class="voice-orb"><span>◉</span></div><div><b id="voiceState">المدير جاهز للاستماع</b><small>ابدأ بالميكروفون أو استخدم البديل الكتابي</small></div></div>
-            <div class="voice-actions"><button id="micBtn" class="btn primary" type="button">◉ ابدأ التحدث</button><button id="stopVoiceBtn" class="btn ghost" type="button">إيقاف الصوت</button></div>
-            <div id="voiceConsent" class="consent" hidden><p>التعرف الصوتي في بعض المتصفحات (مثل Chrome وEdge) يرسل صوتك إلى خدمة سحابية تابعة لمزوّد المتصفح لتحويله إلى نص. لا يحفظ ATLAS أي تسجيل صوتي؛ يُحفظ النص فقط. هل توافق؟</p><div class="action-row"><button id="consentYes" class="btn primary small" type="button">أوافق وأبدأ التحدث</button><button id="consentNo" class="btn ghost small" type="button">استخدام الكتابة بدلًا من ذلك</button></div></div>
-            <label for="utterance" class="field-label">نص الاجتماع / بديل صوتي</label><textarea id="utterance" rows="3" placeholder="مثال: أبي نبني شركتنا ونطلقها خلال أسبوع بدون اختبار..."></textarea>
-            <button id="sendBtn" class="btn action" type="button">رفع الطلب إلى المدير <span>↗</span></button>
-          </div>
-          <div id="agentOutcome" class="outcome" hidden></div>
-          <div class="section-header"><h3>آخر التوجيهات</h3><span>مسجلة داخل النظام</span></div><div id="recentRuns" class="feed"></div>
-        </div>
-        <div id="boardView" class="board-body" hidden>
-          <div class="board-summary" id="boardSummary"></div>
-          <div class="board-cols"><div><h3>مهامي <span id="taskCount">0</span></h3><div id="tasksList" class="feed"></div></div><div><h3>القرارات والموافقات <span id="decisionsCount">0</span></h3><div id="decisionsList" class="feed"></div></div></div>
-        </div>
+        <div class="panel-head"><div class="eyebrow" id="panelKicker"></div><h2 id="panelTitle"></h2><p id="panelSubtitle"></p><button id="closePanel" class="close" type="button" aria-label="إغلاق">×</button></div>
+        <div id="panelBody" class="office-body"></div>
       </section>
     </div>
+    <div id="authRoot" class="overlay auth" hidden></div>
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
   </main>
   <script type="module" src="js/main.js"></script>

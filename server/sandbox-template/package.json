@@ -1,0 +1,8 @@
+{
+  "name": "atlas-sandbox-task-tracker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Sandbox product worked on by ATLAS AI employees (isolated; no dependencies).",
+  "scripts": { "test": "node --test" }
+}
