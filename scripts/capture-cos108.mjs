@@ -76,7 +76,10 @@ try {
         }
         return covered / n;
       });
-      const entry = {scene: s.id, x: s.x, z: s.z, camera: mode, file: file.replaceAll('\\', '/'), hudCoverPct: +(hudCover * 100).toFixed(1)};
+      // Frames per second over 3 s. Headless Chromium uses software WebGL (SwiftShader): only useful to
+      // compare before/after on the same machine, not as a real-GPU figure.
+      const fps = await page.evaluate(() => new Promise(res => { let n = 0; const t0 = performance.now(); const f = t => { n++; if (t - t0 < 3000) requestAnimationFrame(f); else res(n / ((t - t0) / 1000)); }; requestAnimationFrame(f); }));
+      const entry = {scene: s.id, x: s.x, z: s.z, camera: mode, file: file.replaceAll('\\', '/'), hudCoverPct: +(hudCover * 100).toFixed(1), fpsHeadless: +fps.toFixed(1)};
       if (measured) Object.assign(entry, {playerPx: Math.round(measured.playerPx), playerPctOfHeight: +(measured.playerPx / H * 100).toFixed(1), method: 'renderer projection'});
       else {
         const px = analytic({offset: {x: 11, y: 16, z: 17}}); // pre-COS-108 DEFAULT_CAMERA offset, FOV 42°, look-at y=1

@@ -112,14 +112,14 @@ export function buildWorld() {
   };
   const rug = (x, z, w, d, color) => boxP(x, .006, z, w, .012, d, color, 'fabric');
   const zone = r => boxP((r.x0 + r.x1) / 2, -.005, (r.z0 + r.z1) / 2, r.x1 - r.x0, .01, r.z1 - r.z0, r.color);
-  /** Text sign (COS-108-D). Rendered double-sided, Arabic first. `facing`: +1 faces +z viewers, -1 faces -z. */
-  const sign = (id, x, y, z, w, h, ar, en, {facing = 1, arrow = null, accent = COLORS.gold} = {}) =>
-    signs.push({id, x, y, z, w, h, ar, en, facing, arrow, accent});
+  /** Text sign (COS-108-D), Arabic first. `facing`: +1 faces +z viewers, -1 faces -z. Free-standing signs are two-sided. */
+  const sign = (id, x, y, z, w, h, ar, en, {facing = 1, arrow = null, accent = COLORS.gold, twoSided = false} = {}) =>
+    signs.push({id, x, y, z, w, h, ar, en, facing, arrow, accent, twoSided});
   /** Free-standing wayfinding pylon: post + panel, solid footprint like any furniture. */
   const pylon = (id, x, z, ar, en, opts = {}) => {
     boxP(x, .85, z, .12, 1.7, .12, COLORS.wallTrim, 'metal'); boxP(x, .03, z, .5, .06, .5, COLORS.wallTrim, 'metal');
     boxP(x, 1.78, z, (opts.w || 2) + .08, .66, .05, COLORS.wallTrim);
-    sign(id, x, 1.78, z + .035, opts.w || 2, .58, ar, en, opts);
+    sign(id, x, 1.78, z + .035, opts.w || 2, .58, ar, en, {...opts, twoSided: true});
     solid(id, x, z, .5, .5);
   };
   /** Small emissive desk/floor lamp: an ambient light cue without an extra real-time light. */

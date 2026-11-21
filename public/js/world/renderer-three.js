@@ -108,7 +108,7 @@ export function createThreeRenderer(canvas, world, {quality = 'high'} = {}) {
     s.tex.needsUpdate = true;
   }
 
-  // ---- signage (COS-108-D): bilingual canvas textures, drawn once, double-sided and unmirrored
+  // ---- signage (COS-108-D): bilingual canvas textures, drawn once; pylons are two-sided and unmirrored
   for (const sg of world.signs || []) {
     const cv = document.createElement('canvas'); cv.width = 512; cv.height = Math.max(96, Math.round(512 * sg.h / sg.w));
     const ctx = cv.getContext('2d'), w = cv.width, h = cv.height;
@@ -129,10 +129,12 @@ export function createThreeRenderer(canvas, world, {quality = 'high'} = {}) {
     const mat = new THREE.MeshBasicMaterial({map: tex, toneMapped: false});
     const front = new THREE.Mesh(new THREE.PlaneGeometry(sg.w, sg.h), mat);
     front.position.set(sg.x, sg.y, sg.z); if (sg.facing < 0) front.rotation.y = Math.PI;
-    // the back face shows the same, unmirrored text for people walking the other way
-    const back = new THREE.Mesh(new THREE.PlaneGeometry(sg.w, sg.h), mat);
-    back.position.set(sg.x, sg.y, sg.z - sg.facing * .08); back.rotation.y = sg.facing < 0 ? 0 : Math.PI;
-    scene.add(front, back);
+    scene.add(front);
+    if (sg.twoSided) { // free-standing pylons: the back shows the same, unmirrored text for people walking the other way
+      const back = new THREE.Mesh(new THREE.PlaneGeometry(sg.w, sg.h), mat);
+      back.position.set(sg.x, sg.y, sg.z - sg.facing * .08); back.rotation.y = sg.facing < 0 ? 0 : Math.PI;
+      scene.add(back);
+    }
   }
 
   // ---- characters

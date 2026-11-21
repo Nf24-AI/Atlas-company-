@@ -65,9 +65,13 @@ test.describe('COS-108 camera', () => {
       await page.evaluate(m => { window.__atlas.camera.setMode(m, {instant: true}); window.__atlas.place(0, 13); }, mode);
       await settle(page);
       const before = await page.evaluate(() => ({z: window.__atlas.player.z}));
-      await page.keyboard.down('w'); await page.waitForTimeout(500); await page.keyboard.up('w');
+      // Hold W until the player has walked 1 m (frame-rate independent: software WebGL can be slow),
+      // then check the direction: "up the screen" = north in world space at the shared yaw.
+      await page.keyboard.down('w');
+      await page.waitForFunction(z0 => window.__atlas.player.z < z0 - 1, before.z, {timeout: 8000});
+      await page.keyboard.up('w');
       const after = await page.evaluate(() => ({z: window.__atlas.player.z, x: window.__atlas.player.x}));
-      expect(after.z).toBeLessThan(before.z - 1); // "up the screen" = north in world space at the shared yaw
+      expect(after.z).toBeLessThan(before.z - 1);
       expect(Math.abs(after.x)).toBeLessThan(.05);
       await page.evaluate(() => window.__atlas.place(14, -4.5));
       await page.keyboard.down('w'); await page.waitForTimeout(1200); await page.keyboard.up('w');
