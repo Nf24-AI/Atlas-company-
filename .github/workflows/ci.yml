@@ -1,4 +1,4 @@
-name: Node tests
+name: CI
 
 on:
   push:
@@ -16,5 +16,12 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run lint --if-present
       - run: npm test
+      - run: npx playwright install --with-deps chromium firefox webkit
+      - run: npx playwright test
+      - name: Dependency audit
+        run: npm audit --audit-level=high

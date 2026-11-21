@@ -1,5 +1,6 @@
 name: Publish static game demo
 
+# Publishes ONLY the static DEMO build (scripted replies, no backend, no secrets).
 on:
   push:
     branches: [main]
@@ -22,12 +23,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/configure-pages@v5
-      - name: Prepare isolated demo artifact
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - name: Build static demo from the same sources as the app
+        run: node scripts/build-demo.mjs dist
+      - name: Guard — no server code or secrets in the artifact
         run: |
-          mkdir -p dist
-          cp ATLAS-PLAYABLE-DEMO.html dist/index.html
-          touch dist/.nojekyll
+          ! grep -rIl -E "GROQ_API_KEY|DEEPSEEK_API_KEY|sk-[A-Za-z0-9]{20}" dist
+          test ! -e dist/server.js
+      - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

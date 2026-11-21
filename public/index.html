@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0d1b25">
   <meta name="description" content="Company OS — شركة افتراضية ثلاثية الأبعاد بإيجنتين مستقلين">
   <title>ATLAS — Company OS</title>
-  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <main class="game-shell">
@@ -47,6 +47,7 @@
           <div class="section-header"><h3>اجتماع مباشر</h3><span class="status-light" id="speechSupport">VOICE FIRST</span></div>
           <div class="meeting-card"><div class="voice-stage"><div id="voiceOrb" class="voice-orb"><span>◉</span></div><div><b id="voiceState">المدير جاهز للاستماع</b><small>ابدأ بالميكروفون أو استخدم البديل الكتابي</small></div></div>
             <div class="voice-actions"><button id="micBtn" class="btn primary" type="button">◉ ابدأ التحدث</button><button id="stopVoiceBtn" class="btn ghost" type="button">إيقاف الصوت</button></div>
+            <div id="voiceConsent" class="consent" hidden><p>التعرف الصوتي في بعض المتصفحات (مثل Chrome وEdge) يرسل صوتك إلى خدمة سحابية تابعة لمزوّد المتصفح لتحويله إلى نص. لا يحفظ ATLAS أي تسجيل صوتي؛ يُحفظ النص فقط. هل توافق؟</p><div class="action-row"><button id="consentYes" class="btn primary small" type="button">أوافق وأبدأ التحدث</button><button id="consentNo" class="btn ghost small" type="button">استخدام الكتابة بدلًا من ذلك</button></div></div>
             <label for="utterance" class="field-label">نص الاجتماع / بديل صوتي</label><textarea id="utterance" rows="3" placeholder="مثال: أبي نبني شركتنا ونطلقها خلال أسبوع بدون اختبار..."></textarea>
             <button id="sendBtn" class="btn action" type="button">رفع الطلب إلى المدير <span>↗</span></button>
           </div>
@@ -61,8 +62,6 @@
     </div>
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
   </main>
-  <script type="module" src="/game-core.js"></script>
-  <script src="/app.js" defer></script>
-  <script src="/fallback.js" defer></script>
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>

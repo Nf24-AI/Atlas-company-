@@ -1,36 +1,18 @@
-// ATLAS game core — pure movement, collision and camera math (COS-101).
+// ATLAS game core — pure movement, collision, line-of-sight and camera math (COS-101, COS-102).
 // No DOM or WebGL access here, so Node's test runner can import it directly.
-// The browser loads it as a module and exposes it as window.AtlasCore for app.js / fallback.js.
+// The browser imports it as an ES module.
 
 export const PLAYER_RADIUS = 0.4;
 export const WALK_SPEED = 5.2;
 
-// Walkable area. Same limits the prototype used for its clamp (inside the outer walls).
-export const BOUNDS = Object.freeze({minX: -15, maxX: 15, minZ: -11, maxZ: 11});
+import {buildWorld, BOUNDS as WORLD_BOUNDS} from '../world/world-data.js';
 
-// Axis-aligned obstacles on the floor plan, as centre (x, z) and full size (w, d).
-// Values mirror the geometry drawn in emitScene() in app.js; keep them in sync when moving furniture.
-const box = (id, x, z, w, d) => Object.freeze({id, minX: x - w / 2, maxX: x + w / 2, minZ: z - d / 2, maxZ: z + d / 2});
-export const OBSTACLES = Object.freeze([
-  // Side partitions of both offices (z -4.9 .. 3.1). Behind them the floor is open to Operations.
-  box('mgr-wall-west', -16, -0.9, 0.2, 8), box('mgr-wall-east', -0.85, -0.9, 0.2, 8),
-  box('dir-wall-west', 0.85, -0.9, 0.2, 8), box('dir-wall-east', 16, -0.9, 0.2, 8),
-  // Front partitions (z = 2.8). Gaps at x ±(6.1..8) and ±(0.85..3.1) are the walkable doors.
-  box('mgr-front-a', -11.9, 2.8, 7.8, 0.13), box('mgr-front-b', -4.6, 2.8, 3.0, 0.13),
-  box('dir-front-a', 4.6, 2.8, 3.0, 0.13), box('dir-front-b', 11.9, 2.8, 7.8, 0.13),
-  // Manager office
-  box('mgr-desk', -10.3, -5.4, 2.65, 1.16), box('mgr-chair', -10.3, -4.06, 0.8, 0.84),
-  box('mgr-cabinet', -12.8, -8.3, 1.65, 0.6), box('mgr-avatar', -10, -3.25, 0.82, 0.6),
-  box('mgr-plant', -14, -2.0, 0.9, 0.9), box('mgr-plant-back', -4, -9.2, 0.7, 0.7),
-  // Director office
-  box('dir-desk', 10, -5.4, 2.65, 1.16), box('dir-chair', 10, -4.06, 0.8, 0.84),
-  box('dir-shelf', 13.9, -8.2, 0.7, 3.2), box('dir-avatar', 10, -3.25, 0.82, 0.6),
-  box('dir-plant', 14.5, -2.2, 0.9, 0.9), box('dir-plant-back', 5.2, -9.5, 0.8, 0.8),
-  // Operations benches
-  box('ops-bench-west', -2.5, -6.9, 1.4, 0.9), box('ops-bench-east', 2.5, -6.9, 1.4, 0.9),
-  // Lobby plants
-  box('lobby-plant-west', -4.5, 7.8, 1.1, 1.1), box('lobby-plant-east', 4.5, 7.8, 1.1, 1.1),
-]);
+// Walkable area and obstacles come from world-data.js — the same calls that emit the visible geometry.
+export const BOUNDS = WORLD_BOUNDS;
+const WORLD = buildWorld();
+export const OBSTACLES = Object.freeze(WORLD.colliders);
+/** Colliders that block line of sight (tall walls/partitions, not low furniture). */
+export const SIGHT_BLOCKERS = Object.freeze(WORLD.colliders.filter(c => c.sight));
 
 const overlaps = (x, z, r, o) => x + r > o.minX && x - r < o.maxX && z + r > o.minZ && z - r < o.maxZ;
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
@@ -146,7 +128,49 @@ export function worldDirection(input, yaw, baseYaw = DEFAULT_CAMERA.yaw) {
   return {x: input.x * c + input.z * s, z: -input.x * s + input.z * c};
 }
 
+
+// ---- Line of sight ------------------------------------------------------------
+/** True when segment (ax,az)->(bx,bz) passes through box o (slab test, 2D). */
+export function segmentHitsBox(ax, az, bx, bz, o) {
+  let t0 = 0, t1 = 1;
+  const dx = bx - ax, dz = bz - az;
+  for (const [p, d, lo, hi] of [[ax, dx, o.minX, o.maxX], [az, dz, o.minZ, o.maxZ]]) {
+    if (Math.abs(d) < 1e-9) { if (p < lo || p > hi) return false; continue; }
+    let ta = (lo - p) / d, tb = (hi - p) / d;
+    if (ta > tb) [ta, tb] = [tb, ta];
+    t0 = Math.max(t0, ta); t1 = Math.min(t1, tb);
+    if (t0 > t1) return false;
+  }
+  return true;
+}
+
+/** True when nothing in `blockers` lies between the two points. */
+export function hasLineOfSight(ax, az, bx, bz, blockers = SIGHT_BLOCKERS) {
+  return !blockers.some(o => segmentHitsBox(ax, az, bx, bz, o));
+}
+
+/**
+ * The interactable the player can use right now: within `range` of its point AND visible
+ * (no wall in between). Prevents interacting through partitions.
+ */
+export function nearestInteractable(player, interactables, range = 4, blockers = SIGHT_BLOCKERS) {
+  let best = null;
+  for (const [key, it] of Object.entries(interactables)) {
+    const p = it.point || it;
+    const d = Math.hypot(player.x - p.x, player.z - p.z);
+    if (d < range && (!best || d < best.distance) && hasLineOfSight(player.x, player.z, p.x, p.z, blockers)) best = {key, distance: d};
+  }
+  return best;
+}
+
+/** Pinch gesture: ratio of finger distance now / before → new orbit state (fingers apart = zoom in). */
+export function applyPinch(cam, ratio, limits = CAMERA_LIMITS) {
+  if (!(ratio > 0) || !Number.isFinite(ratio)) return cam;
+  const r = clamp(ratio, 1 - limits.maxWheelStep, 1 + limits.maxWheelStep);
+  return clampCamera({...cam, distance: cam.distance / r}, limits);
+}
+
 const AtlasCore = {PLAYER_RADIUS, WALK_SPEED, BOUNDS, OBSTACLES, collisions, isWalkable, moveWithCollisions, resolvePosition, inputVector,
-  CAMERA_LIMITS, DEFAULT_CAMERA, cameraOffset, clampCamera, applyDrag, applyZoom, damp, angleDelta, worldDirection};
-if (typeof window !== 'undefined') window.AtlasCore = AtlasCore;
+  CAMERA_LIMITS, DEFAULT_CAMERA, cameraOffset, clampCamera, applyDrag, applyZoom, applyPinch, damp, angleDelta, worldDirection,
+  SIGHT_BLOCKERS, segmentHitsBox, hasLineOfSight, nearestInteractable};
 export default AtlasCore;

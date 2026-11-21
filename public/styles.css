@@ -4,3 +4,4 @@
 body.orbit-on #world{cursor:grab}body.orbit-on #world.dragging{cursor:grabbing}
 .top-actions .btn{white-space:nowrap}@media(max-width:720px){.top-actions{gap:6px}.top-actions .btn-label{display:none}.top-actions .btn{min-width:40px;font-size:16px}}
 .map-player{pointer-events:none}
+.consent{margin:10px 0;padding:12px;border:1px solid var(--orange);border-radius:12px;background:rgba(246,188,122,.08);font-size:13px;line-height:1.7}.consent p{margin:0 0 8px}
