@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.3.0] — 2026-11-21 (unreleased; PRs awaiting CEO review)
+## [0.3.0] — 2026-11-21 (merged into `main`: PRs #3–#6; not tagged or deployed)
 
 ### COS-107 — Immersive office
 - Three.js r187 renderer (MIT) built from the shared world data: lighting, shadows, sliding glass doors, live
