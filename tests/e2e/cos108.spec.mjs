@@ -11,7 +11,13 @@ const expectedPoses = page => page.evaluate(async () => { const {presenceFor} = 
 /** Camera framing exists only in the 3D renderer. Without WebGL (e.g. headless Firefox on the Linux CI runner)
  *  the app correctly falls back to Canvas2D, whose fixed view is covered by the fallback test below. */
 const needs3D = async page => test.skip(await page.evaluate(() => window.__atlas.renderer) !== 'three', 'no WebGL here: Canvas2D fallback has a fixed view (see fallback test)');
-const settle = page => page.waitForTimeout(1200); // camera easing
+/** Wait until the camera easing has really converged (view = target, eye at player + offset). Frame-rate
+ *  independent: slow CI runners render few frames per second, so fixed sleeps are not enough. */
+const settle = page => expect.poll(() => page.evaluate(() => {
+  const c = window.__atlas.camera, v = c.view, t = c.target, e = c.eye, p = window.__atlas.player, h = Math.cos(v.pitch) * v.distance;
+  const want = {x: p.x + Math.sin(v.yaw) * h, y: Math.sin(v.pitch) * v.distance, z: p.z + Math.cos(v.yaw) * h};
+  return Math.abs(v.distance - t.distance) < .05 && Math.abs(v.pitch - t.pitch) < .005 && Math.abs(v.yaw - t.yaw) < .005 && Math.hypot(e.x - want.x, e.y - want.y, e.z - want.z) < .05;
+}), {timeout: 40_000, intervals: [250]}).toBe(true);
 function trackErrors(page) {
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
@@ -57,7 +63,7 @@ test.describe('COS-108 camera', () => {
     expect(moved.distance).toBeGreaterThan(14);
     await page.keyboard.press('c');
     await page.keyboard.press('r');
-    await expect.poll(() => page.evaluate(() => { const v = window.__atlas.camera.view, t = window.__atlas.camera.target; return Math.abs(v.distance - t.distance) < .05 && Math.abs(v.yaw - t.yaw) < .01; })).toBe(true);
+    await settle(page);
     const back = await page.evaluate(() => window.__atlas.camera.target);
     expect(back.distance).toBeCloseTo(12.5, 5);
   });
@@ -88,9 +94,8 @@ test.describe('COS-108 camera', () => {
     const z0 = await page.evaluate(() => window.__atlas.player.z);
     // Arabic layout: physical W types "ص", physical E types "ث"
     await page.evaluate(() => window.dispatchEvent(new KeyboardEvent('keydown', {key: 'ص', code: 'KeyW'})));
-    await page.waitForTimeout(400);
+    await page.waitForFunction(z => window.__atlas.player.z < z - .5, z0, {timeout: 8000}); // frame-rate independent
     await page.evaluate(() => window.dispatchEvent(new KeyboardEvent('keyup', {key: 'ص', code: 'KeyW'})));
-    expect(await page.evaluate(() => window.__atlas.player.z)).toBeLessThan(z0 - .5);
     await page.evaluate(() => window.__atlas.travel('qa'));
     await page.waitForFunction(() => window.__atlas.nearby === 'qa');
     await page.evaluate(() => window.dispatchEvent(new KeyboardEvent('keydown', {key: 'ث', code: 'KeyE'})));

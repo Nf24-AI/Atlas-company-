@@ -190,7 +190,7 @@ async function boot() {
   // Test/debug hook (read-only snapshots + teleport/camera helpers) used by browser tests and evidence capture.
   window.__atlas = {
     player, get nearby() { return nearby; }, get room() { return room; }, renderer: renderer.kind, travel, place: (x, z) => placePlayer(player, x, z), store, panels, hud,
-    camera: {get mode() { return camera.mode; }, get orbit() { return camera.orbit; }, get view() { return {...camera.view}; }, get target() { return camera.target; }, setMode: camera.setMode, toggleMode: camera.toggleMode, reset: camera.reset},
+    camera: {get mode() { return camera.mode; }, get orbit() { return camera.orbit; }, get view() { return {...camera.view}; }, get eye() { return {...camera.eye}; }, get target() { return camera.target; }, setMode: camera.setMode, toggleMode: camera.toggleMode, reset: camera.reset},
     /** Poses the renderer applied on the last frame (derived from the store, see presence.js). */
     presence: () => ({...(lastOut?.poses || {})}),
     /** Player's on-screen height in CSS px from the renderer's own projection. */
