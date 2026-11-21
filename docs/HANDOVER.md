@@ -5,6 +5,8 @@ For whoever (human or AI) continues ATLAS. Read [PROJECT-HUB.md](PROJECT-HUB.md)
 ## State on 2026-11-21
 - `main` contains COS-101 → COS-107. PRs #3, #4, #5 and #6 were merged on 2026-11-21 (`main` at `502c1dd`).
 - CI passes on `main`. The Pages workflow fails because GitHub Pages is not enabled (a pending CEO decision).
+- COS-108 (issue #8) is on `cos-108-immersive-office-experience` with a PR awaiting CEO review. See
+  [cos-108/REPORT.md](cos-108/REPORT.md).
 - The old feature branches (`cos-102-…` to `cos-107-…`) still exist on the remote and can be deleted when no longer needed.
 - No production, staging or Pages deployment exists. There are no API keys in the environment.
 
@@ -14,6 +16,14 @@ For whoever (human or AI) continues ATLAS. Read [PROJECT-HUB.md](PROJECT-HUB.md)
     and interactables. Rendering and collision both come from it.
   - Change the layout there, then run `npm test`. The flood-fill and line-of-sight tests catch unreachable
     spots.
+- **Camera / HUD / presence (COS-108)**
+  - Camera presets and limits: `CAMERA_PRESETS` in `public/js/core/game-core.js`. Keep both presets on the same
+    yaw, or WASD stops being screen-relative.
+  - `public/js/world/presence.js` is the only status → pose mapping. Add a backend status there first; the unit
+    test compares it with `EMPLOYEE_STATUSES`.
+  - `public/js/ui/hud.js` owns the collapsible roster and map (`localStorage` key `atlas-hud-v1`).
+  - Signs are data (`sign()` / `pylon()` in world-data.js) and are drawn by both renderers.
+  - `node scripts/capture-cos108.mjs <label>` reproduces the matched screenshots and measurements.
 - **Renderers**
   - `renderer-three.js` is the default; `humanoid.js` draws the characters.
   - `renderer-canvas.js` is the fallback (`?canvas`).
@@ -38,7 +48,8 @@ For whoever (human or AI) continues ATLAS. Read [PROJECT-HUB.md](PROJECT-HUB.md)
 - Append-only audit.
 - Loopback binding.
 - No secrets in git.
-- No fake work animation: poses follow real status.
+- No fake work animation: poses follow real status (presence.js).
+- Office labels in the static demo say "simulated".
 
 ## Next steps
 See [ROADMAP.md](ROADMAP.md). The pending CEO decisions are listed in [STATUS.md](STATUS.md#pending-ceo-approvals).

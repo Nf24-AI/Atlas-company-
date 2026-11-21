@@ -11,10 +11,16 @@
 | COS-105 | Independent AI employees (provider-agnostic, budgets, retries, failure states) | ✅ merged | PR #5 |
 | COS-106 | Developer + QA in a sandbox repo, CEO approvals, tool allowlists | ✅ merged | PR #5 |
 | COS-107 | Immersive 3D office, live status, voice, CEO workspace | ✅ merged | PR #6 · `96bde23` (into #5's branch, landed with #5) |
+| COS-108 | Immersive office experience: camera, HUD, employee presence, environment | 🔍 awaiting CEO review | Issue #8 · `cos-108-immersive-office-experience` |
 
 All four PRs were merged into `main` on 2026-11-21 with CEO approval, in order, using merge commits.
 PR #6 was merged into PR #5's branch first, so `main` never held the new backend without its UI. CI passed
 on the combined PR #5 and on `main` after the merge.
+
+## COS-108 in review
+Close follow camera with optional overview (V) and re-centre (R); collapsible roster (T) and map (M); employee
+poses and status rings driven only by real store data; bilingual signage, wayfinding and room details. Evidence:
+[cos-108/REPORT.md](cos-108/REPORT.md). Not merged; it needs CEO review.
 
 ## What works (verified by automated tests — see [TEST-RESULTS.md](TEST-RESULTS.md))
 
@@ -26,6 +32,7 @@ on the combined PR #5 and on `main` after the merge.
   the system re-runs them and overrides a false "pass"; bounded rework; CEO approves the merge.
 - System and CEO evaluations (append-only); costs, budgets, emergency stop/resume; audit log.
 - 3D office with walls, doors, collision, line-of-sight interaction, mini-map, live status beacons.
+- (COS-108 branch) Follow/overview camera, collapsible HUD, room entry cues, status-driven poses and signage.
 - Static demo for GitHub Pages (simulated, no backend).
 
 ## What is not verified

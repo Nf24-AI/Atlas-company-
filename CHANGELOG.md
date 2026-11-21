@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.4.0] — unreleased (COS-108, PR pending CEO review)
+
+### COS-108 — Immersive office experience
+- **Camera (A):** close follow view by default (avatar 60 → 137 px tall at 1280×720), optional high overview
+  (V), re-centre (R). Both views share one yaw, so WASD is unchanged. Wheel and pinch zoom work in every mode;
+  drag-orbit is still opt-in (C). The world was not rescaled.
+- **HUD (B):** team roster (T) and floor map (M) collapse to labelled buttons, collapsed by default; HUD cover of
+  the viewport 38.1% → 15.0%. The collapsed roster shows live status dots and an alert count for blockers and
+  pending approvals. Compact bottom bar with a room chip and a short room-entry banner. Preference saved in this
+  browser only.
+- **Presence (C):** `presence.js` maps the 8 backend statuses to poses (idle, thinking, talking, typing, reading,
+  blocked, waiting, done); unknown statuses render neutral. Status floor rings; blockers and approvals pulse.
+- **Environment (D):** bilingual Arabic-first signs on every office and work area, wayfinding pylons from
+  reception, visitor chairs, lamps, whiteboard content, test devices, a coffee station. Colliders come from
+  world-data as before. The Canvas2D fallback draws the same signs.
+- **Input:** letter keys use the physical key, so controls also work with an Arabic keyboard layout.
+- **Tests (E):** 12 new unit tests and 12 new browser tests; `scripts/capture-cos108.mjs` for matched
+  before/after evidence.
+
 ## [0.3.0] — 2026-11-21 (merged into `main`: PRs #3–#6; not tagged or deployed)
 
 ### COS-107 — Immersive office

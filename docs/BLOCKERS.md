@@ -25,5 +25,11 @@
   risk.
 - **No ESLint/TypeScript.** `npm run lint` checks syntax and scans for secrets. A full linter is deferred to keep
   dependencies minimal.
+- **COS-108 visuals were checked in headless browsers only.** Screenshots, measurements and frame rates come from
+  Playwright (software WebGL) and device emulation, not from a physical phone or a real GPU.
+- **Canvas2D fallback has no camera modes.** It keeps its fixed isometric view; V/R are accepted but do not change
+  that view. Signs, presence and interactions match the 3D renderer.
+- **Tall props can sit between the camera and the avatar** in the close view (e.g. the QA server rack). There is no
+  occlusion fading yet (roadmap).
 - **GPU in headless browsers.** Automated tests run with software WebGL, which may log performance warnings.
   These are filtered from the console-error assertions.
