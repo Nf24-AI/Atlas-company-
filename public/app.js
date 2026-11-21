@@ -6,7 +6,10 @@ let data={projects:[],tasks:[],decisions:[],runs:[],config:{manager:false,direct
 let activeOffice='manager',nearby=null, lastRun=null, busy=false,toastTimer;
 const canvas=$('world');const gl=canvas.getContext('webgl',{antialias:true,alpha:true,powerPreference:'high-performance'});
 if(!gl){$('sceneTitle').innerHTML='<div class="eyebrow">COMPATIBILITY MODE</div><h2>مقر الشركة التفاعلي</h2><p>عرض إيزومتري بديل للأجهزة دون WebGL</p>';}
-const player={x:0,z:7,heading:0,bob:0};const camera={x:10,y:17,z:24};const keys=new Set();const temp={model:[], labels:{}};
+const Core=window.AtlasCore;
+const player={x:0,z:7,heading:0,bob:0,moving:false};const camera={x:10,y:17,z:24};
+// Camera: easy isometric follow by default; orbit/zoom only after the CEO opts in (button or C key).
+let orbitMode=false;const view={...Core.DEFAULT_CAMERA};let viewTarget={...Core.DEFAULT_CAMERA};const keys=new Set();const temp={model:[], labels:{}};
 const VERT=`attribute vec3 a_position;attribute vec3 a_normal;attribute vec3 a_color;uniform mat4 u_viewProjection;varying vec3 v_color;varying float v_light;void main(){gl_Position=u_viewProjection*vec4(a_position,1.0);v_color=a_color;vec3 light=normalize(vec3(-0.55,0.86,0.52));v_light=0.55+max(dot(a_normal,light),0.0)*0.42;}`;
 const FRAG=`precision mediump float;varying vec3 v_color;varying float v_light;void main(){gl_FragColor=vec4(v_color*v_light,1.0);}`;
 function shader(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s;}
@@ -23,7 +26,8 @@ function sphere(x,y,z,r,col){let rings=7,seg=10;for(let j=0;j<rings;j++){let a=-
 function chair(x,z,facing=0){box(x,.42,z,.78,.22,.7,C.chair);box(x,.85,z+(facing?-.34:.34),.80,.75,.13,C.chair);for(let dx of [-.26,.26])for(let dz of [-.22,.22])box(x+dx,.19,z+dz,.08,.34,.08,C.steel);}
 function desk(x,z,accent=C.table){box(x,.76,z,2.65,.15,1.16,accent);for(let dx of [-1.05,1.05])for(let dz of [-.39,.39])box(x+dx,.37,z+dz,.13,.65,.13,C.brown);box(x,1.24,z-.16,.88,.68,.10,C.screen);box(x,1.33,z-.08,.7,.45,.03,'#6ba6a5');box(x,.98,z-.1,.07,.2,.07,C.steel);box(x,.87,z+.29,.93,.03,.30,'#384f56');chair(x,z+1.2);}
 function plant(x,z,s=1){cyl(x,.32*s,z,.3*s,.6*s,C.brown);cyl(x,.65*s,z,.07*s,.55*s,C.plant);sphere(x,1.10*s,z,.55*s,C.plant);sphere(x-.25*s,1.31*s,z,.32*s,'#6f9f77');}
-function avatar(x,z,coat,accent,time,person=false){const walk=person?Math.abs(Math.sin(time*9))*Math.min(1,Math.hypot(...(Array.from(keys).length?[1,1]:[0,0])))*.055:0;box(x,.07,z,.82,.04,.82,'#9caea3');cyl(x,.31+walk,z,.28,.56,'#314c5c');cyl(x-.17,.45+walk,z,.12,.52,'#344f60');cyl(x+.17,.45+walk,z,.12,.52,'#344f60');box(x,.97+walk,z,.62,.88,.40,coat);box(x-.40,1.01+walk,z,.19,.78,.28,coat);box(x+.40,1.01+walk,z,.19,.78,.28,coat);sphere(x,1.66+walk,z,.33,'#d5a982');box(x,1.85+walk,z-.045,.53,.14,.48,accent);}
+function avatar(x,z,coat,accent,time,person=false){const walk=person?Math.abs(Math.sin(time*9))*.055:0;box(x,.07,z,.82,.04,.82,'#9caea3');cyl(x,.31+walk,z,.28,.56,'#314c5c');cyl(x-.17,.45+walk,z,.12,.52,'#344f60');cyl(x+.17,.45+walk,z,.12,.52,'#344f60');box(x,.97+walk,z,.62,.88,.40,coat);box(x-.40,1.01+walk,z,.19,.78,.28,coat);box(x+.40,1.01+walk,z,.19,.78,.28,coat);sphere(x,1.66+walk,z,.33,'#d5a982');box(x,1.85+walk,z-.045,.53,.14,.48,accent);}
+// Walls and furniture below have matching colliders in game-core.js (OBSTACLES); update both together.
 function emitScene(t){verts=[];
  box(0,-.20,0,35,.3,26,C.floor);box(0,-.012,3,8,.025,17,C.white);box(0,-.015,-7,11,.026,6,C.mat);
  box(0,.14,0,33,.025,.12,'#b7c8bd');
@@ -55,7 +59,7 @@ function emitScene(t){verts=[];
  // Agent avatars stationary
  avatar(-10,-3.25,'#2a665f','#213f43',t,false);avatar(10,-3.25,'#6d5a49','#344452',t,false);
  // player moving
- const moving=keys.size>0;avatar(player.x,player.z,'#1d5163','#344753',t,moving);
+ avatar(player.x,player.z,'#1d5163','#344753',t,player.moving);
 }
 function perspective(fov,aspect,near,far){const f=1/Math.tan(fov/2),nf=1/(near-far);return [f/aspect,0,0,0,0,f,0,0,0,0,(far+near)*nf,-1,0,0,2*far*near*nf,0];}
 function lookAt(eye,target,up=[0,1,0]){let z=eye.map((v,i)=>v-target[i]);let zl=Math.hypot(...z);z=z.map(v=>v/zl);let x=[up[1]*z[2]-up[2]*z[1],up[2]*z[0]-up[0]*z[2],up[0]*z[1]-up[1]*z[0]];let xl=Math.hypot(...x);x=x.map(v=>v/xl);const y=[z[1]*x[2]-z[2]*x[1],z[2]*x[0]-z[0]*x[2],z[0]*x[1]-z[1]*x[0]];return [x[0],y[0],z[0],0,x[1],y[1],z[1],0,x[2],y[2],z[2],0,-(x[0]*eye[0]+x[1]*eye[1]+x[2]*eye[2]),-(y[0]*eye[0]+y[1]*eye[1]+y[2]*eye[2]),-(z[0]*eye[0]+z[1]*eye[1]+z[2]*eye[2]),1];}
@@ -64,8 +68,11 @@ function project(p,m,w,h){const x=p[0],y=p[1],z=p[2];const v=[m[0]*x+m[4]*y+m[8]
 let lastTime=performance.now();let lastLabelAt=0;let matrix=[];
 const lbl=$('labels');lbl.innerHTML=Object.entries(offices).map(([k,v])=>`<div class="world-label" id="label-${k}"><b>${v.label}</b><small>${v.arabic}</small></div>`).join('');
 function frame(stamp){if(!gl)return;const delta=Math.min(.05,(stamp-lastTime)/1000);lastTime=stamp;
- if(!$('overlay').hidden){keys.clear();} else {let dx=(keys.has('d')||keys.has('ArrowRight')?1:0)-(keys.has('a')||keys.has('ArrowLeft')?1:0);let dz=(keys.has('s')||keys.has('ArrowDown')?1:0)-(keys.has('w')||keys.has('ArrowUp')?1:0);let l=Math.hypot(dx,dz);if(l){player.x=Math.max(-15,Math.min(15,player.x+dx/l*5.2*delta));player.z=Math.max(-11,Math.min(11,player.z+dz/l*5.2*delta));player.heading=Math.atan2(dx,-dz);}}
- const target={x:player.x+11,y:16,z:player.z+17};camera.x+=(target.x-camera.x)*Math.min(1,delta*3);camera.y+=(target.y-camera.y)*Math.min(1,delta*3);camera.z+=(target.z-camera.z)*Math.min(1,delta*3);
+ player.moving=false;
+ if(!$('overlay').hidden){keys.clear();} else {const input=Core.inputVector(keys);if(input.x||input.z){const dir=Core.worldDirection(input,view.yaw);const next=Core.moveWithCollisions(player.x,player.z,dir.x*Core.WALK_SPEED*delta,dir.z*Core.WALK_SPEED*delta);player.moving=Math.hypot(next.x-player.x,next.z-player.z)>1e-4;player.x=next.x;player.z=next.z;player.heading=Math.atan2(dir.x,-dir.z);}}
+ // Smoothly ease the orbit state toward its target, then follow the player with the same gentle rate as before.
+ const ease=Core.damp(6,delta);view.yaw+=Core.angleDelta(view.yaw,viewTarget.yaw)*ease;view.pitch+=(viewTarget.pitch-view.pitch)*ease;view.distance+=(viewTarget.distance-view.distance)*ease;
+ const off=Core.cameraOffset(view),follow=Core.damp(3,delta);const target={x:player.x+off.x,y:off.y,z:player.z+off.z};camera.x+=(target.x-camera.x)*follow;camera.y+=(target.y-camera.y)*follow;camera.z+=(target.z-camera.z)*follow;
  const rect=canvas.getBoundingClientRect();const width=Math.max(1,Math.floor(rect.width*devicePixelRatio)),height=Math.max(1,Math.floor(rect.height*devicePixelRatio));if(canvas.width!==width||canvas.height!==height){canvas.width=width;canvas.height=height;gl.viewport(0,0,width,height)}
  matrix=mul(perspective(Math.PI/4,width/height,.1,150),lookAt([camera.x,camera.y,camera.z],[player.x,0,player.z]));
  emitScene(stamp/1000);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(verts),gl.DYNAMIC_DRAW);const stride=9*4;for(const [loc,off] of [[locs.pos,0],[locs.normal,12],[locs.color,24]]){gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,3,gl.FLOAT,false,stride,off)}gl.uniformMatrix4fv(locs.vp,false,new Float32Array(matrix));gl.drawArrays(gl.TRIANGLES,0,verts.length/9);
@@ -74,12 +81,20 @@ function frame(stamp){if(!gl)return;const delta=Math.min(.05,(stamp-lastTime)/10
  requestAnimationFrame(frame);
 }
 if(gl)requestAnimationFrame(frame);
-window.addEventListener('keydown',e=>{if(e.key==='Escape')return closePanel();if(['INPUT','TEXTAREA'].includes(document.activeElement.tagName))return;const k=e.key.length===1?e.key.toLowerCase():e.key;if(['w','a','s','d','ArrowUp','ArrowLeft','ArrowDown','ArrowRight'].includes(k)){keys.add(k);e.preventDefault();}if(k==='e'&&$('overlay').hidden&&nearby)openPanel(nearby);});
+window.addEventListener('keydown',e=>{if(e.key==='Escape')return closePanel();if(['INPUT','TEXTAREA'].includes(document.activeElement.tagName))return;const k=e.key.length===1?e.key.toLowerCase():e.key;if(['w','a','s','d','ArrowUp','ArrowLeft','ArrowDown','ArrowRight'].includes(k)){keys.add(k);e.preventDefault();}if(k==='e'&&$('overlay').hidden&&nearby)openPanel(nearby);if(k==='c'&&!e.ctrlKey&&!e.metaKey&&$('overlay').hidden)setOrbit(!orbitMode);});
 window.addEventListener('keyup',e=>keys.delete(e.key.length===1?e.key.toLowerCase():e.key));window.addEventListener('blur',()=>keys.clear());
 for(const b of document.querySelectorAll('[data-move]')){const k=b.dataset.move;b.addEventListener('pointerdown',e=>{e.preventDefault();keys.add(k);b.setPointerCapture(e.pointerId)});for(const event of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(event,()=>keys.delete(k));}
-function travel(role){const o=offices[role];player.x=o.x;player.z=o.z+2.9;if(role==='board')player.z=o.z+2.3;toast('تم الانتقال إلى '+o.arabic+' — اضغط E أو زر الدخول');}
+function placePlayer(x,z){const p=Core.resolvePosition(x,z);player.x=p.x;player.z=p.z;}
+function travel(role){const o=offices[role];placePlayer(o.x,o.z+(role==='board'?2.3:2.9));toast('تم الانتقال إلى '+o.arabic+' — اضغط E أو زر الدخول');}
 for(const b of document.querySelectorAll('[data-go]')){b.addEventListener('click',()=>travel(b.dataset.go));b.addEventListener('keydown',e=>{if(e.key==='Enter')travel(b.dataset.go)})}
-$('interactBtn').addEventListener('click',()=>nearby&&openPanel(nearby));$('viewBtn').addEventListener('click',()=>{player.x=0;player.z=7;toast('تمت إعادة التمركز')});
+$('interactBtn').addEventListener('click',()=>nearby&&openPanel(nearby));$('viewBtn').addEventListener('click',()=>{placePlayer(0,7);viewTarget={...Core.DEFAULT_CAMERA};toast('تمت إعادة التمركز')});
+function setOrbit(on){orbitMode=on;if(!on)viewTarget={...Core.DEFAULT_CAMERA};document.body.classList.toggle('orbit-on',on);const b=$('orbitBtn');b.setAttribute('aria-pressed',String(on));$('orbitIcon').textContent=on?'✓':'⟲';toast(on?'الكاميرا الحرة مفعلة: اسحب للتدوير، وعجلة الفأرة للتقريب · C للإيقاف':'عادت الكاميرا إلى المتابعة التلقائية');}
+$('orbitBtn').addEventListener('click',()=>setOrbit(!orbitMode));
+let drag=null;
+canvas.addEventListener('pointerdown',e=>{if(!orbitMode||(e.pointerType==='mouse'&&e.button!==0))return;drag={id:e.pointerId,x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId);canvas.classList.add('dragging');});
+canvas.addEventListener('pointermove',e=>{if(!drag||e.pointerId!==drag.id)return;viewTarget=Core.applyDrag(viewTarget,e.clientX-drag.x,e.clientY-drag.y);drag.x=e.clientX;drag.y=e.clientY;});
+for(const ev of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(ev,()=>{drag=null;canvas.classList.remove('dragging');});
+canvas.addEventListener('wheel',e=>{if(!orbitMode)return;e.preventDefault();viewTarget=Core.applyZoom(viewTarget,e.deltaMode===1?e.deltaY*16:e.deltaY);},{passive:false});
 function openPanel(role){activeOffice=role;const o=offices[role];$('overlay').hidden=false;document.body.classList.add('overlay-open');keys.clear();$('panelTitle').textContent=role==='board'?'مركز العمليات':o.arabic;$('panelSubtitle').textContent=role==='board'?'المهام، القرارات، وموافقات الإدارة':'تفاعل صوتيًا، اتخذ قرارًا، أو اطلب توجيهًا عمليًا.';$('panelKicker').textContent=role==='board'?'COMPANY OPERATIONS':role.toUpperCase()+' OFFICE';$('officeView').hidden=role==='board';$('boardView').hidden=role!=='board';if(role==='board')renderBoard();else {const letter=role==='manager'?'M':'D';$('employeeLetter').textContent=letter;$('employeeLetter').style.background=role==='manager'?'#2d7168':'#80613b';$('employeeName').textContent=o.label;$('employeeDesc').textContent=o.arabic;$('utterance').value='';$('agentOutcome').hidden=true;renderRecent();}renderStats();$('closePanel').focus();}
 function closePanel(){$('overlay').hidden=true;document.body.classList.remove('overlay-open');stopAudio();keys.clear();}
 $('closePanel').onclick=closePanel;$('overlay').addEventListener('click',e=>{if(e.target===$('overlay'))closePanel()});
