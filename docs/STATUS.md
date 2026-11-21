@@ -5,12 +5,12 @@
 | ID | Title | State | Branch / PR |
 |---|---|---|---|
 | COS-101 | Gameplay foundation | ✅ merged (PR #2) | `main` |
-| COS-102 | Modular frontend, shared geometry/collision, LOS, pinch zoom, smoke tests | 🔍 awaiting CEO review | `cos-102-frontend-modules` |
-| COS-103 | ADR-001 production architecture | 🔍 awaiting CEO review | `cos-103-architecture-adr` (stacked on 102) |
-| COS-104 | Persistent backend: auth, authorization, validation, rate limits, migrations, audit | 🔍 awaiting CEO review | `cos-104-106-company-os` (stacked on 103) |
-| COS-105 | Independent AI employees (provider-agnostic, budgets, retries, failure states) | 🔍 awaiting CEO review | same branch as COS-104 |
-| COS-106 | Developer + QA in a sandbox repo, CEO approvals, tool allowlists | 🔍 awaiting CEO review | same branch as COS-104 |
-| COS-107 | Immersive 3D office, live status, voice, CEO workspace | 🔍 awaiting CEO review | `cos-107-immersive-office` (stacked on 104-106) |
+| COS-102 | Modular frontend, shared geometry/collision, LOS, pinch zoom, smoke tests | 🔍 awaiting CEO review | PR #3 · `cos-102-frontend-modules` |
+| COS-103 | ADR-001 production architecture | 🔍 awaiting CEO review | PR #4 · `cos-103-architecture-adr` (stacked on #3) |
+| COS-104 | Persistent backend: auth, authorization, validation, rate limits, migrations, audit | 🔍 awaiting CEO review | PR #5 · `cos-104-106-company-os` (stacked on #4) |
+| COS-105 | Independent AI employees (provider-agnostic, budgets, retries, failure states) | 🔍 awaiting CEO review | PR #5 |
+| COS-106 | Developer + QA in a sandbox repo, CEO approvals, tool allowlists | 🔍 awaiting CEO review | PR #5 |
+| COS-107 | Immersive 3D office, live status, voice, CEO workspace | 🔍 awaiting CEO review | PR #6 · `cos-107-immersive-office` (stacked on #5) |
 
 The PRs are **stacked**: each branch builds on the previous one. Review and merge them in order. Nothing is
 merged without CEO approval.

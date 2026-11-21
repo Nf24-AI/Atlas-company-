@@ -1,7 +1,7 @@
 # Test results
 
 Actual results from runs on 2026-11-21. Environment: Windows 11, Node v24.19.0, Playwright 1.65.1 with its
-bundled Chromium, Firefox and WebKit. CI (`.github/workflows/ci.yml`) runs the same commands on Ubuntu.
+bundled Chromium, Firefox and WebKit. CI (`.github/workflows/ci.yml`) runs the same commands on Ubuntu; it passed on PRs #3, #4, #5 and #6.
 
 | Command | Result |
 |---|---|
