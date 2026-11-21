@@ -62,7 +62,10 @@ export const NPCS = Object.freeze([
 
 export function buildWorld() {
   const primitives = [], colliders = [], doors = [], screens = [], signs = [];
-  const prim = p => primitives.push(p);
+  // COS-109: primitives built while `artZone` is set are tagged, so the 3D renderer can replace that room with
+  // its art vertical slice. Colliders are unaffected: they are always emitted here, by the same calls.
+  let artZone = null;
+  const prim = p => primitives.push(artZone ? {...p, zone: artZone} : p);
   const boxP = (x, y, z, w, h, d, color, mat) => prim({shape: 'box', x, y, z, w, h, d, color, ...(mat ? {mat} : {})});
   const cylP = (x, y, z, r, h, color, mat) => prim({shape: 'cyl', x, y, z, r, h, color, ...(mat ? {mat} : {})});
   const sphP = (x, y, z, r, color, mat) => prim({shape: 'sphere', x, y, z, r, color, ...(mat ? {mat} : {})});
@@ -131,12 +134,12 @@ export function buildWorld() {
 
   // ---- floor slab, zones, outer walls
   boxP(0, -.16, 0, 46, .3, 34, COLORS.floor);
-  for (const r of [{x0: -22.4, x1: -12, z0: -16.4, z1: -7, color: COLORS.carpetTd}, {x0: -6, x1: 6, z0: -16.4, z1: -7, color: COLORS.carpetMeet}, {x0: 12, x1: 22.4, z0: -16.4, z1: -7, color: COLORS.carpetPm},
+  for (const r of [{x0: -22.4, x1: -12, z0: -16.4, z1: -7, color: COLORS.carpetTd}, {x0: -6, x1: 6, z0: -16.4, z1: -7, color: COLORS.carpetMeet}, {x0: 12, x1: 22.4, z0: -16.4, z1: -7, color: COLORS.carpetPm, art: 'pm'},
     {x0: -22.4, x1: -9.5, z0: -4.5, z1: 5.5, color: COLORS.devFloor}, {x0: -6.5, x1: 6.5, z0: -4.5, z1: 5.5, color: COLORS.opsFloor}, {x0: 9.5, x1: 22.4, z0: -4.5, z1: 5.5, color: COLORS.qaFloor},
-    {x0: -22.4, x1: -12, z0: 8, z1: 16.4, color: COLORS.carpetCeo}, {x0: -6.5, x1: 6.5, z0: 8, z1: 16.4, color: COLORS.reception}, {x0: 12, x1: 22.4, z0: 8, z1: 16.4, color: COLORS.lounge}]) zone(r);
+    {x0: -22.4, x1: -12, z0: 8, z1: 16.4, color: COLORS.carpetCeo}, {x0: -6.5, x1: 6.5, z0: 8, z1: 16.4, color: COLORS.reception}, {x0: 12, x1: 22.4, z0: 8, z1: 16.4, color: COLORS.lounge}]) { artZone = r.art || null; zone(r); artZone = null; }
   boxP(0, .004, 6.8, 46, .008, 2.2, COLORS.corridor); boxP(0, .004, -5.8, 46, .008, 2.2, COLORS.corridor);
   boxP(0, 1.4, -16.7, 46, 2.8, .3, COLORS.wallTrim); boxP(-22.7, 1.4, 0, .3, 2.8, 34, COLORS.wallTrim); boxP(22.7, 1.4, 0, .3, 2.8, 34, COLORS.wallTrim);
-  for (let x = -20; x <= 20; x += 4) boxP(x, 1.6, -16.53, 3.2, 1.6, .05, '#8fc2c9', 'glass'); // windows on the north facade
+  for (let x = -20; x <= 20; x += 4) { artZone = x >= 16 ? 'pm' : null; boxP(x, 1.6, -16.53, 3.2, 1.6, .05, '#8fc2c9', 'glass'); artZone = null; } // windows on the north facade
   boxP(-14, .6, 16.7, 18, 1.2, .3, COLORS.wallTrim); boxP(14, .6, 16.7, 18, 1.2, .3, COLORS.wallTrim); // south facade, entrance gap x∈[-5,5]
   boxP(0, .02, 16.4, 10, .04, .6, COLORS.gold, 'metal');
 
@@ -173,7 +176,8 @@ export function buildWorld() {
   plant('meet-plant-w', -5.2, -15.2, .8); plant('meet-plant-e', 5.2, -15.2, .8);
   cylP(0, .8, -12, .26, .04, '#1b2b31', 'metal'); for (const dx of [-1.6, 0, 1.6]) for (const dz of [-.65, .65]) mug(dx, .78, -12 + dz, '#cfe9e1');
 
-  // ---- Project Manager office
+  // ---- Project Manager office (COS-109 art vertical slice in the 3D renderer: see office-pm.js)
+  artZone = 'pm';
   desk('pm-desk', 17, -11.6, {screenFacing: -1, screenOwner: 'manager', chairSide: -1});
   boxP(21.3, .55, -12.8, .5, 1.1, 2.4, '#aac4b7', 'wood'); solid('pm-cabinet', 21.3, -12.8, .5, 2.4);
   boxP(17, 1.6, -15.95, 3.4, 1.4, .06, '#f4f4ef'); // kanban board
@@ -181,6 +185,11 @@ export function buildWorld() {
   plant('pm-plant', 13, -15, .9); rug(17, -10.2, 3.2, 2, '#a7c3b5');
   for (const x of [15.6, 18.4]) { chair(x, -10.2, Math.PI); solid(`pm-visitor-${x < 17 ? 'w' : 'e'}`, x, -10.2, .66, .6); }
   lamp('pm-lamp', 13.4, -8.4, {floor: true}); lamp('pm-desk-lamp', 18.05, -11.75); mug(15.95, .8, -11.4);
+  // COS-109 lounge corner: two armchairs facing each other across a low table
+  chair(13.2, -13.1, 0); chair(13.2, -10.5, Math.PI); cylP(13.2, .38, -11.8, .34, .06, COLORS.wood, 'wood'); cylP(13.2, .18, -11.8, .05, .34, COLORS.steel, 'metal');
+  solid('pm-lounge-chair-n', 13.2, -13.1, .8, .8); solid('pm-lounge-chair-s', 13.2, -10.5, .8, .8); solid('pm-lounge-table', 13.2, -11.8, .72, .72);
+  solid('pm-plant-ne', 21.85, -15.85, .7, .7); cylP(21.85, .32, -15.85, .32, .64, '#8d6f56'); sphP(21.85, 1.3, -15.85, .5, COLORS.plant, 'plant');
+  artZone = null;
 
   // ---- Developer workstations (open plan, low partitions)
   desk('dev-desk-1', -18, -1.5, {wood: '#b08a66', screenFacing: 1, screenOwner: 'developer', chairSide: 1});

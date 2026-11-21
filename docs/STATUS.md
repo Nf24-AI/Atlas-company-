@@ -17,6 +17,12 @@ All four PRs were merged into `main` on 2026-11-21 with CEO approval, in order, 
 PR #6 was merged into PR #5's branch first, so `main` never held the new backend without its UI. CI passed
 on the combined PR #5 and on `main` after the merge.
 
+## COS-109 in review (not merged)
+Project Manager office art vertical slice on branch `cos-109-pm-office-slice`: textured, furnished, lit room, a
+live sprint board with real task counts and a detailed seated manager. Waiting for CEO visual approval before
+other departments get the same treatment. Evidence and honest performance numbers:
+[cos-109/REPORT.md](cos-109/REPORT.md).
+
 ## COS-108 merged
 Close follow camera with optional overview (V) and re-centre (R); collapsible roster (T) and map (M); employee
 poses and status rings driven only by real store data; bilingual signage, wayfinding and room details. Evidence:

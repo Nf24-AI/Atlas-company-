@@ -1,0 +1,57 @@
+{
+  "label": "before",
+  "date": "2026-11-21T21:29:23.189Z",
+  "note": "Headless Chromium + SwiftShader. Positions/poses identical for before and after.",
+  "shots": [
+    {
+      "shot": "follow",
+      "viewport": "1280x720",
+      "file": "docs/cos-109/before-follow-1280x720.png",
+      "fpsHeadless": 15.2
+    },
+    {
+      "shot": "overview",
+      "viewport": "1280x720",
+      "file": "docs/cos-109/before-overview-1280x720.png",
+      "fpsHeadless": 19
+    },
+    {
+      "shot": "eye-door",
+      "viewport": "1280x720",
+      "file": "docs/cos-109/before-eye-door-1280x720.png",
+      "fpsHeadless": 16.8
+    },
+    {
+      "shot": "eye-corner",
+      "viewport": "1280x720",
+      "file": "docs/cos-109/before-eye-corner-1280x720.png",
+      "fpsHeadless": 15.8
+    },
+    {
+      "shot": "follow",
+      "viewport": "1920x1080",
+      "file": "docs/cos-109/before-follow-1920x1080.png",
+      "fpsHeadless": 8.2
+    },
+    {
+      "shot": "overview",
+      "viewport": "1920x1080",
+      "file": "docs/cos-109/before-overview-1920x1080.png",
+      "fpsHeadless": 11
+    },
+    {
+      "shot": "eye-door",
+      "viewport": "1920x1080",
+      "file": "docs/cos-109/before-eye-door-1920x1080.png",
+      "fpsHeadless": 9
+    },
+    {
+      "shot": "eye-corner",
+      "viewport": "1920x1080",
+      "file": "docs/cos-109/before-eye-corner-1920x1080.png",
+      "fpsHeadless": 8.4
+    }
+  ],
+  "renderer": "three",
+  "tasks": 0
+}

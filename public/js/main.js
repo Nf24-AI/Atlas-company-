@@ -7,6 +7,7 @@ import {buildWorld, roomAt} from './world/world-data.js';
 import {avatarPrimitives} from './world/characters.js';
 import {createCanvasRenderer} from './world/renderer-canvas.js';
 import {presenceFor} from './world/presence.js';
+import {pmBoardCounts} from './world/office-pm.js';
 import {createPlayer, stepPlayer, placePlayer} from './game/player-controller.js';
 import {createCamera} from './game/camera-controller.js';
 import {createInput} from './game/input.js';
@@ -28,13 +29,14 @@ const LABEL_RADIUS_FOLLOW = 13; // in the close view only nearby office labels f
 const PLAYER_HEIGHT = 2.0;
 
 async function createRenderer() {
-  const forceCanvas = new URLSearchParams(location.search).has('canvas');
+  const qs = new URLSearchParams(location.search), forceCanvas = qs.has('canvas');
+  const artSlice = qs.get('art') !== '0'; // COS-109: ?art=0 shows the pre-slice block-out (A/B review, low-end GPUs)
   if (!forceCanvas) {
     try {
       const probe = document.createElement('canvas');
       if (probe.getContext('webgl2') || probe.getContext('webgl')) {
         const {createThreeRenderer} = await import('./world/renderer-three.js');
-        const r = createThreeRenderer(canvas, world);
+        const r = createThreeRenderer(canvas, world, {artSlice});
         if (r) return r;
       }
     } catch (e) { console.warn('[atlas] 3D renderer unavailable, using compatibility mode', e); }
@@ -115,6 +117,7 @@ async function boot() {
     s.__board = {title: L('العمليات', 'OPERATIONS'), subtitle: `${open} ${L('مهام مفتوحة', 'open tasks')} · ${tasks.filter(x => x.status === 'done').length} ${L('منجزة', 'done')}`, bars: ['proposed', 'todo', 'in_progress', 'in_qa', 'rework', 'awaiting_ceo', 'done'].map(k => Math.min(1, tasks.filter(x => x.status === k).length / 3))};
     const m = d.meetings[0], inMeeting = d.employees.filter(e => e.kind === 'ai' && e.status === 'in_meeting').map(e => e.name);
     s.__meeting = {title: L('غرفة الاجتماعات', 'MEETING ROOM'), subtitle: inMeeting.length ? `${L('الآن: ', 'Now: ')}${inMeeting.join('، ')}` : m ? m.ceoInput.slice(0, 32) : L('لا اجتماعات', 'no meetings'), color: inMeeting.length ? STATUS_COLORS.in_meeting : undefined};
+    s.__pmBoard = pmBoardCounts(tasks); // COS-109 sprint board in the PM office: real counts only
     const pend = d.approvals.filter(a => a.status === 'pending').length;
     s.__ceo = {title: 'CEO', subtitle: pend ? `${pend} ${L('بانتظار موافقتك', 'awaiting you')}` : L('لا شيء معلق', 'all clear'), color: pend ? STATUS_COLORS.awaiting_approval : STATUS_COLORS.available};
     return s;
@@ -163,7 +166,9 @@ async function boot() {
     const dynamicPrimitives = renderer.kind === 'three' ? [] : [
       ...world.npcs.flatMap(n => [{shape: 'cyl', x: n.x, y: .02, z: n.z, r: .62, h: .02, color: STATUS_COLORS[presenceFor(npcStates[n.id]?.status).status]}, ...avatarPrimitives(n.x, n.z, n.coat, n.accent)]),
       ...avatarPrimitives(player.x, player.z, '#1d5163', '#344753', player.walkPhase, player.moving)];
-    lastOut = renderer.render({eye: [camera.eye.x, camera.eye.y, camera.eye.z], target: [player.x, 0, player.z], player, npcStates, nearby, time: stamp / 1000, dt, dynamicPrimitives});
+    // Capture-only override (COS-109 matched screenshots): window.__atlas.debugView = {eye:[x,y,z], target:[x,0,z]}.
+    const dv = window.__atlas?.debugView;
+    lastOut = renderer.render({eye: dv ? dv.eye : [camera.eye.x, camera.eye.y, camera.eye.z], target: dv ? dv.target : [player.x, 0, player.z], player, npcStates, nearby, time: stamp / 1000, dt, dynamicPrimitives});
     if (stamp - lastHud > 100) { updateHud(lastOut); lastHud = stamp; }
     requestAnimationFrame(frame);
   }

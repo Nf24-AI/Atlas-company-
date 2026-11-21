@@ -1,5 +1,20 @@
 # Test results
 
+## COS-109 (branch `cos-109-pm-office-slice`, not merged), 2026-11-22
+
+| Command | Result |
+|---|---|
+| `npm run lint` | OK |
+| `npm test` | 58 / 58 (6 new in `tests/cos109.test.mjs`) |
+| `npx playwright test` (setup, Chromium, Firefox, WebKit, Pixel 7 emulation) | 62 passed, 6 skipped, 1 failed (5.6 min) |
+| Re-run of the failed Firefox test | passed |
+| `npm run build:demo` | ok |
+| `npm audit` | 0 vulnerabilities |
+
+The one failure is the known Playwright/Firefox infrastructure flake ("Unable to restore IndexedDB" while creating
+the browser context, before any test code ran; the app does not use IndexedDB). It passed on re-run.
+Captures and headless frame rates: [cos-109/REPORT.md](cos-109/REPORT.md).
+
 ## COS-108 (merged in PR #9), 2026-11-21
 
 | Command | Baseline (`main`) | After COS-108 |
