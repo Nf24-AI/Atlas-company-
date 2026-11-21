@@ -87,3 +87,31 @@ details.run{margin:6px 0;background:#132f3b;border-radius:10px;padding:8px 12px}
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 .mobile-controls{direction:ltr}
 @media(max-width:720px){.toast{bottom:auto;top:200px;max-width:calc(100% - 32px);text-align:center}}
+/* ---- COS-108 HUD: collapsible roster + map, compact bottom bar, room cues ---------------- */
+.hud-toggle{position:absolute;z-index:5;top:104px;display:flex;align-items:center;gap:8px;padding:8px 11px;border-radius:12px;color:#e6f3ef;font-size:12px;font-weight:650;min-height:40px}
+.hud-toggle:hover{background:rgba(23,58,70,.95)}
+.hud-toggle[aria-expanded="true"]{background:#1f4a55;border-color:#3f6971}
+.team-toggle{right:16px}.map-toggle{left:16px}
+.hud-toggle .key{width:20px;height:20px;font-size:10px}
+.hud-dots{display:flex;gap:4px}.hud-dots i{width:9px;height:9px;border-radius:50%;display:block;box-shadow:0 0 0 2px rgba(0,0,0,.25)}
+.hud-alert{background:#f07a6a;color:#fff;border-radius:9px;padding:1px 7px;font-size:10px;font-weight:800}
+.team-toggle.has-alert{border-color:#f6d27a;box-shadow:0 0 0 3px rgba(246,210,122,.18)}
+.sidebar{top:152px;max-height:calc(100% - 250px)}
+.mini-map{top:152px}
+.hud-bottom{left:50%;right:auto;transform:translateX(-50%);width:min(900px,calc(100% - 32px))}
+.room-chip{border:1px solid #6fa7a0;border-radius:8px;padding:4px 9px;color:#cfe9e1;font-size:11px;white-space:nowrap}
+.room-chip:empty{display:none}
+.room-banner{position:absolute;top:104px;left:50%;transform:translate(-50%,-6px);z-index:5;padding:8px 18px;border-radius:12px;background:rgba(11,28,39,.86);border:1px solid rgba(226,249,242,.16);color:#f5f1e9;font-weight:700;font-size:15px;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none}
+.room-banner.show{opacity:1;transform:translate(-50%,0)}
+.room-banner:empty{display:none}
+.world-label.attention{box-shadow:0 0 0 3px color-mix(in srgb,var(--st) 35%,transparent),0 6px 16px #0016}
+@media(max-width:1020px){.hud-toggle .key{display:none}}
+@media(max-width:720px){
+  .hud-toggle{top:80px;padding:7px 10px;font-size:11px}
+  .team-toggle{right:9px}.map-toggle{left:9px}
+  .sidebar{top:126px}
+  .mini-map:not([hidden]){display:block;top:126px;left:9px;transform:scale(.8);transform-origin:top left}
+  .room-banner{top:128px;font-size:13px}
+  .room-chip{display:none}
+  .hud-bottom{width:calc(100% - 16px)}
+}
